@@ -15,7 +15,7 @@ Llegadas::Llegadas (double tasa)
   tEntreLlegadas = CreateObject<ExponentialRandomVariable> ();
   // ... y ajustamos su valor medio
   tEntreLlegadas->SetAttribute ("Mean", DoubleValue (mean));  
-  // Programamos la primera llegada. //HAY QUE PASAR UN TIME COMO PRIMER PARAMETRO
+  // Programamos la primera llegada.
   Simulator::Schedule (Seconds(tEntreLlegadas->GetValue()), &Llegadas::NuevaLlegada, this, Simulator::Now ().GetSeconds());
 }
 
