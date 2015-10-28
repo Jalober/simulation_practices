@@ -40,7 +40,7 @@ main (int argc, char *argv[])
 
   // Componentes del escenario:
   // Dos nodos
-  Ptr<Node> nodoTx = CreateObject<Node> ();
+  //Ptr<Node> nodoTx = CreateObject<Node> ();
   Ptr<Node> nodoRx = CreateObject<Node> ();
   // Dos dispositivos de red
   Ptr<PointToPointNetDevice> dispTx = CreateObject<PointToPointNetDevice> ();
@@ -57,10 +57,10 @@ main (int argc, char *argv[])
   dispTx->SetQueue (CreateObject<DropTailQueue> ());
   dispRx->SetQueue (CreateObject<DropTailQueue> ());
   // Añadimos cada dispositivo a su nodo
-  nodoTx->AddDevice (dispTx);
+  //nodoTx->AddDevice (dispTx);
   nodoRx->AddDevice (dispRx);
   // Añadimos cada aplicación a su nodo
-  nodoTx->AddApplication(&transmisor);
+  //nodoTx->AddApplication(&transmisor);
   nodoRx->AddApplication(&receptor);
   // Asociamos los dos dispositivos al canal
   dispTx->Attach (canal);
@@ -108,7 +108,11 @@ main (int argc, char *argv[])
       //Calculo del temporizador de retransmision
       Time tRetransmisionActual(tRetransmisionDesde.GetDouble() + j * (tRetransmisionHasta.GetDouble() - tRetransmisionDesde.GetDouble() / 9));
       //Configuracion de aplicacion (temporizador de retransmision)          
+      Ptr<Node> nodoTx = CreateObject<Node> ();
+      nodoTx->AddDevice (dispTx);
       BitAlternanteTx transmisor(dispRx, tRetransmisionActual, TAM_PAQUETE);
+      nodoTx->AddApplication(&transmisor);  
+
       transmisor.SetStartTime (Seconds (1.0));
       transmisor.SetStopTime (Seconds (10.0));
       Simulator::Run ();  
@@ -155,7 +159,11 @@ main (int argc, char *argv[])
       //Calculo del temporizador de retransmision
       Time tRetransmisionActual(tRetransmisionDesde.GetDouble() + j * (tRetransmisionHasta.GetDouble() - tRetransmisionDesde.GetDouble() / 9));
       //Configuracion de aplicacion (temporizador de retransmision)          
+      Ptr<Node> nodoTx = CreateObject<Node> ();
+      nodoTx->AddDevice (dispTx);
       BitAlternanteTx transmisor(dispRx, tRetransmisionActual, TAM_PAQUETE);
+      nodoTx->AddApplication(&transmisor);      
+
       transmisor.SetStartTime (Seconds (1.0));
       transmisor.SetStopTime (Seconds (10.0));
       Simulator::Run ();  
