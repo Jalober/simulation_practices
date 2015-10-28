@@ -70,8 +70,7 @@ main (int argc, char *argv[])
   canal->SetAttribute ("Delay", StringValue ("2ms"));
   dispTx->SetAttribute ("DataRate", StringValue ("5Mbps"));
   */
-
-  /*// Activamos el transmisor
+  /*
   transmisor.SetStartTime (Seconds (1.0));
   transmisor.SetStopTime (Seconds (10.0));
   */
@@ -110,6 +109,8 @@ main (int argc, char *argv[])
       Time tRetransmisionActual(tRetransmisionDesde.GetDouble() + j * (tRetransmisionHasta.GetDouble() - tRetransmisionDesde.GetDouble() / 9));
       //Configuracion de aplicacion (temporizador de retransmision)          
       BitAlternanteTx transmisor(dispRx, tRetransmisionActual, TAM_PAQUETE);
+      transmisor.SetStartTime (Seconds (1.0));
+      transmisor.SetStopTime (Seconds (10.0));
       Simulator::Run ();  
       Simulator::Destroy ();
       dataset.Add(tRetransmisionActual.GetDouble(), transmisor.TotalDatos());
@@ -155,6 +156,8 @@ main (int argc, char *argv[])
       Time tRetransmisionActual(tRetransmisionDesde.GetDouble() + j * (tRetransmisionHasta.GetDouble() - tRetransmisionDesde.GetDouble() / 9));
       //Configuracion de aplicacion (temporizador de retransmision)          
       BitAlternanteTx transmisor(dispRx, tRetransmisionActual, TAM_PAQUETE);
+      transmisor.SetStartTime (Seconds (1.0));
+      transmisor.SetStopTime (Seconds (10.0));
       Simulator::Run ();  
       Simulator::Destroy ();
       dataset.Add(tRetransmisionActual.GetDouble(), transmisor.TotalDatos());
