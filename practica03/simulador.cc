@@ -19,6 +19,24 @@ main (int argc, char *argv[])
 {
   Time::SetResolution (Time::MS);
 
+  //Variables para parametros de linea de comandos
+  DataRate velocidadTxDesde(1);
+  DataRate velocidadTxHasta(100);
+  Time     retardoPropDesde(1);
+  Time     retardoPropHasta(100);
+  Time     tRetransmisionDesde(1);  
+  Time     tRetransmisionHasta(100);
+
+  //Obtencion de parametros por linea de comandos
+  CommandLine cmd;
+  cmd.AddValue("velocidadTxDesde", "valor de la velocidad de transmision inicial", velocidadTxDesde);
+  cmd.AddValue("velocidadTxHasta", "valor de la velocidad de transmision final", velocidadTxHasta);
+  cmd.AddValue("retardoPropDesde", "retardo de propagacion inicial", retardoPropDesde);
+  cmd.AddValue("retardoPropHasta", "retardo de propagacion final", retardoPropHasta);
+  cmd.AddValue("tRetransmisionDesde", "temporizador de retransmisiones inicial", tRetransmisionDesde);
+  cmd.AddValue("tRetransmisionHasta", "temporizador de retransmisiones final", tRetransmisionHasta);
+  cmd.Parse(argc, argv);
+
   // Componentes del escenario:
   // Dos nodos
   Ptr<Node> nodoTx = CreateObject<Node> ();
@@ -29,7 +47,7 @@ main (int argc, char *argv[])
   // Un canal punto a punto
   Ptr<PointToPointChannel> canal = CreateObject<PointToPointChannel> ();;
   // Una aplicación transmisora
-  BitAlternanteTx transmisor(dispRx, "10ms", 2048);
+  BitAlternanteTx transmisor(dispRx, Time("10ms"), 994);
   // Y una receptora
   BitAlternanteRx receptor(dispTx);
 
@@ -46,7 +64,7 @@ main (int argc, char *argv[])
   // Asociamos los dos dispositivos al canal
   dispTx->Attach (canal);
   dispRx->Attach (canal);
-  
+
   // Modificamos los parámetos configurables
   canal->SetAttribute ("Delay", StringValue ("2ms"));
   dispTx->SetAttribute ("DataRate", StringValue ("5Mbps"));
@@ -55,9 +73,20 @@ main (int argc, char *argv[])
   transmisor.SetStartTime (Seconds (1.0));
   transmisor.SetStopTime (Seconds (10.0));
 
-  NS_LOG_UNCOND ("Voy a simular");
-  Simulator::Run ();
-  Simulator::Destroy ();
+  //NS_LOG_UNCOND ("Voy a simular");
+  //Creacion de la primera grafica
+  for (i = 0; i < 5; i++) {
+  //Bucle para la creación de cada curva
+  //Configuración del parametro (retardo de propagacion)
+  canal->SetAttribute ("Delay", StringValue ("2ms"));
+      for (j = 0; j < 10; j++) {
+          //Configuracion de aplicacion (temporizador de retransmision)
+          BitAlternanteTx transmisor(dispRx, Time(""), 994);
+      
+          Simulator::Run ();
+          Simulator::Destroy ();
+      }
+  }
 
   NS_LOG_UNCOND ("Total paquetes: " << transmisor.TotalDatos());
 

@@ -13,16 +13,16 @@ public:
   // Constructor de la clase. Necesita como parámetros el puntero al dispositivo de red
   // con el que debe comunicarse, el temporizador de retransmisiones y el tamaño de
   // paquete. Inicializa las variables privadas.
-  BitAlternanteTx(Ptr<NetDevice>, std::string, uint32_t tamPqt);
+  BitAlternanteTx(Ptr<NetDevice>, Time, uint32_t tamPqt);
 
-  // Callback para la recepción de paquetes.
+  // Función para el procesamiento de asentimientos recibidos.
   // Comprueba si el ACK es el adecuado. Si lo es, desactiva el temporizador de
   // retransmisiones, actualiza el valor de la ventana y envía un nuevo paquete.
   void ACKRecibido(Ptr<NetDevice> receptor, Ptr<const Packet> recibido,
                    uint16_t protocolo, const Address &desde, const Address &hacia,
                    NetDevice::PacketType tipoPaquete);
 
-  // Función de callback para vencimiento del temporizador
+  // Función de vencimiento del temporizador
   void VenceTemporizador ();
   
   // Función que envía un paquete.
@@ -32,11 +32,10 @@ public:
   uint32_t TotalDatos();
 
 private:
-
   // Método de inicialización de la aplicación.
   // Se llama sólo una vez al inicio.
-  // En nuestro caso sirve para instalar el Callback que va a procesar los paquetes
-  // recibidos.
+  // En nuestro caso sirve para instalar el Callback que va a procesar
+  // los asentimientos recibidos.
   void DoInitialize()
   {
     // Solicitamos que nos entreguen (mediante la llamada a ACKRecibido)
@@ -59,7 +58,7 @@ private:
   // Método que se llama en el instante de final de la aplicación.
   void StopApplication()
   {
-    m_terminar = 1;
+    Simulator::Stop ();
   }
 
   // Dispositivo de red con el que hay que comunicarse.
@@ -68,15 +67,13 @@ private:
   Time           m_esperaACK;
   // Tamaño del paquete
   uint32_t       m_tamPqt;
-  // Valor inicial del bit para los paquetes a transmitir
+  // Número de secuencia de los paquetes a transmitir
   uint8_t        m_tx;
   // Evento de retransmision
   EventId        m_temporizador;
-  // Indicador de si hay que finalizar la transmisión.
-  int            m_terminar;
   // Acumulador de paquetes bien asentidos.
   int            m_totalPqt;
-  // Paquete a enviar (debe guardarse por si hay retransmisiones)
+  // Paquete a enviar (debe guardarse por si hay retransmisiones
   Ptr<Packet>    m_paquete;
 };
 
@@ -85,12 +82,11 @@ class BitAlternanteRx : public Application
 {
 public:
 
-  // Constructor de la clase. Necesita como parámetros el puntero al dispositivo de red
-  // con el que debe comunicarse, el temporizador de retransmisiones y el tamaño de
-  // paquete. Inicializa las variables privadas.
+  // Constructor de la clase. Necesita como parámetro el puntero al dispositivo
+  // de red con el que debe comunicarse.
   BitAlternanteRx(Ptr<NetDevice>);
 
-  // Callback para la recepción de paquetes.
+  // Función para el procesamiento de paquetes recibidos
   // Comprueba si el ACK es el adecuado. Si lo es, desactiva el temporizador de
   // retransmisiones, actualiza el valor de la ventana y envía un nuevo paquete.
   void PaqueteRecibido(Ptr<NetDevice> receptor, Ptr<const Packet> recibido,
@@ -102,7 +98,7 @@ public:
 
 private:
 
-  // Método de inicialización de la aplicación. Instala el Callback.
+  // Método de inicialización de la aplicación. Instala el callback.
   void DoInitialize()
   {
     // Solicitamos que nos entreguen (mediante la llamada a PaqueteRecibido)
@@ -115,6 +111,6 @@ private:
 
   // Dispositivo de red con el que hay que comunicarse.
   Ptr<NetDevice> m_disp;
-  // Valor inicial del bit para los paquetes recibidos
+  // Número de secuencia de los paquetes a recibir
   uint8_t        m_rx;
 };
