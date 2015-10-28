@@ -178,7 +178,7 @@ main (int argc, char *argv[])
     plot2.AddDataset(dataset);
   }
 
-  NS_LOG_UNCOND ("Total paquetes: " << transmisor.TotalDatos());
+  //NS_LOG_UNCOND ("Total paquetes: " << transmisor.TotalDatos());
 
   return 0;
 }
