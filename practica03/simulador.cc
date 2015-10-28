@@ -5,9 +5,10 @@
 #include <ns3/point-to-point-net-device.h>
 #include <ns3/point-to-point-channel.h>
 #include <ns3/drop-tail-queue.h>
+#include <ns3/gnuplot.h>
 #include "BitAlternante.h"
 
-
+#define TAM_PAQUETE 994
 
 using namespace ns3;
 
@@ -65,27 +66,105 @@ main (int argc, char *argv[])
   dispTx->Attach (canal);
   dispRx->Attach (canal);
 
-  // Modificamos los parámetos configurables
+  /*// Modificamos los parámetos configurables
   canal->SetAttribute ("Delay", StringValue ("2ms"));
   dispTx->SetAttribute ("DataRate", StringValue ("5Mbps"));
+  */
 
-  // Activamos el transmisor
+  /*// Activamos el transmisor
   transmisor.SetStartTime (Seconds (1.0));
   transmisor.SetStopTime (Seconds (10.0));
-
+  */
+  
+  
+  
   //NS_LOG_UNCOND ("Voy a simular");
-  //Creacion de la primera grafica
-  for (i = 0; i < 5; i++) {
+  
+  /* 
+   * PRIMERA GRAFICA
+   */
+  NS_LOG_INFO ("############################");
+  NS_LOG_INFO ("# PRIMERA GRAFICA ##########");
+  NS_LOG_INFO ("############################");
+  Gnuplot plot1;
+  //TODO: plot1.SetTitle("");
+  
+  //Calculo de la velocidad de transmision media
+  DataRate velocidadTxMedia((velocidadTxDesde.GetBitRate() + velocidadTxHasta.GetBitRate()) / 2);
+  NS_LOG_INFO ("velocidadTxMedia: " << velocidadTxMedia.GetBitRate());
+  NS_LOG_INFO ("############################");
+  //Configuracion de la constante (velocidad transmision)  
+  dispTx->SetAttribute ("DataRate", velocidadTxMedia);
   //Bucle para la creación de cada curva
-  //Configuración del parametro (retardo de propagacion)
-  canal->SetAttribute ("Delay", StringValue ("2ms"));
-      for (j = 0; j < 10; j++) {
-          //Configuracion de aplicacion (temporizador de retransmision)
-          BitAlternanteTx transmisor(dispRx, Time(""), 994);
+  for (int i = 0; i < 5 ; i++) {  
+    //Calculo del parametro (retardo de propagacion)
+    Time retardoPropActual(retardoPropDesde.GetDouble() + i * (retardoPropHasta.GetDouble() - retardoPropDesde.GetDouble()) / 4);
+    NS_LOG_INFO ("retardoPropActual: " << retardoPropActual.GetDouble());
+    NS_LOG_INFO ("***************************");
+    //Configuración del parametro (retardo de propagacion)
+    canal->SetAttribute ("Delay", retardoPropActual);
+    //Creacion de una nueva curva
+    Gnuplot2dDataset dataset;
+    for (int j = 0; j < 10; j++) {
+      //Calculo del temporizador de retransmision
+      Time tRetransmisionActual(tRetransmisionDesde.GetDouble() + j * (tRetransmisionHasta.GetDouble() - tRetransmisionDesde.GetDouble() / 9));
+      //Configuracion de aplicacion (temporizador de retransmision)          
+      BitAlternanteTx transmisor(dispRx, tRetransmisionActual, TAM_PAQUETE);
+      Simulator::Run ();  
+      Simulator::Destroy ();
+      dataset.Add(tRetransmisionActual.GetDouble(), transmisor.TotalDatos());
+
+      NS_LOG_INFO ("   tRetransmisionActual: " << tRetransmisionActual.GetDouble());
+      NS_LOG_INFO ("   Total paquetes: " << transmisor.TotalDatos());
+      NS_LOG_INFO ("-----------------------");
+    }
+    //Añadimos el dataset a la grafica
+    plot1.AddDataset(dataset);
+  }
+
+  
+  /*
+   * SEGUNDA GRAFICA
+   */
+  NS_LOG_INFO ("############################");
+  NS_LOG_INFO ("# SEGUNDA GRAFICA ##########");
+  NS_LOG_INFO ("############################");
+
+  Gnuplot plot2;
+  //TODO: plot2.SetTitle("");
+  
+  //Calculo del retardo de propagacion
+  Time retardoPropMedio((retardoPropDesde.GetDouble() + retardoPropHasta.GetDouble()) / 2);
+  NS_LOG_INFO ("retardoPropMedio: " << retardoPropMedio.GetDouble());
+  NS_LOG_INFO ("############################");
+
+  //Configuracion de la constante (retardo de propagacion)
+  canal->SetAttribute ("Delay", retardoPropMedio);
+  //Bucle para la creación de cada curva
+  for (i = 0; i < 5; i++) {
+    //Calculo del parametro (velocidad de transmision)
+    DataRate velocidadTxActual(velocidadTxDesde.GetBitRate() + i * (velocidadTxHasta.GetBitRate() - velocidadTxDesde.GetBitRate()) / 4);
+    NS_LOG_INFO ("velocidadTxActual: " << velocidadTxActual.GetBitRate());
+    NS_LOG_INFO ("***************************");
+    //Configuracion del parametro (velocidad transmision)
+    dispTx->SetAttribute ("DataRate", velocidadTxActual);
+    //Creacion de la curva
+    Gnuplot2dDataset dataset;
+    for (j = 0; j < 10; j++) {
+      //Calculo del temporizador de retransmision
+      Time tRetransmisionActual(tRetransmisionDesde.GetDouble() + j * (tRetransmisionHasta.GetDouble() - tRetransmisionDesde.GetDouble() / 9));
+      //Configuracion de aplicacion (temporizador de retransmision)          
+      BitAlternanteTx transmisor(dispRx, tRetransmisionActual, TAM_PAQUETE);
+      Simulator::Run ();  
+      Simulator::Destroy ();
+      dataset.Add(tRetransmisionActual.GetDouble(), transmisor.TotalDatos());
       
-          Simulator::Run ();
-          Simulator::Destroy ();
-      }
+      NS_LOG_INFO ("   tRetransmisionActual: " << tRetransmisionActual.GetDouble());
+      NS_LOG_INFO ("   Total paquetes: " << transmisor.TotalDatos());
+      NS_LOG_INFO ("-----------------------");
+    }
+    //Añadimos el dataset a la grafica
+    plot2.AddDataset(dataset);
   }
 
   NS_LOG_UNCOND ("Total paquetes: " << transmisor.TotalDatos());
