@@ -106,7 +106,7 @@ main (int argc, char *argv[])
     Gnuplot2dDataset dataset;
     for (int j = 0; j < 10; j++) {
       //Calculo del temporizador de retransmision
-      Time tRetransmisionActual(tRetransmisionDesde.GetDouble() + j * (tRetransmisionHasta.GetDouble() - tRetransmisionDesde.GetDouble() / 9));
+      Time tRetransmisionActual(tRetransmisionDesde.GetDouble() + j * (tRetransmisionHasta.GetDouble() - tRetransmisionDesde.GetDouble()) / 9);
       //Configuracion de aplicacion (temporizador de retransmision)          
       Ptr<Node> nodoTx = CreateObject<Node> ();
       nodoTx->AddDevice (dispTx);
@@ -157,7 +157,7 @@ main (int argc, char *argv[])
     Gnuplot2dDataset dataset;
     for (int j = 0; j < 10; j++) {
       //Calculo del temporizador de retransmision
-      Time tRetransmisionActual(tRetransmisionDesde.GetDouble() + j * (tRetransmisionHasta.GetDouble() - tRetransmisionDesde.GetDouble() / 9));
+      Time tRetransmisionActual(tRetransmisionDesde.GetDouble() + j * (tRetransmisionHasta.GetDouble() - tRetransmisionDesde.GetDouble()) / 9);
       //Configuracion de aplicacion (temporizador de retransmision)          
       Ptr<Node> nodoTx = CreateObject<Node> ();
       nodoTx->AddDevice (dispTx);
