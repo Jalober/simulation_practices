@@ -48,7 +48,7 @@ main (int argc, char *argv[])
   // Un canal punto a punto
   Ptr<PointToPointChannel> canal = CreateObject<PointToPointChannel> ();;
   // Una aplicación transmisora
-  BitAlternanteTx transmisor(dispRx, Time("10ms"), 994);
+  //BitAlternanteTx transmisor(dispRx, Time("10ms"), 994);
   // Y una receptora
   BitAlternanteRx receptor(dispTx);
 
