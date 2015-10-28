@@ -94,7 +94,7 @@ main (int argc, char *argv[])
   NS_LOG_INFO ("velocidadTxMedia: " << velocidadTxMedia.GetBitRate());
   NS_LOG_INFO ("############################");
   //Configuracion de la constante (velocidad transmision)  
-  dispTx->SetAttribute ("DataRate", velocidadTxMedia);
+  dispTx->SetAttribute ("DataRate", DataRateValue(velocidadTxMedia));
   //Bucle para la creación de cada curva
   for (int i = 0; i < 5 ; i++) {  
     //Calculo del parametro (retardo de propagacion)
@@ -102,7 +102,7 @@ main (int argc, char *argv[])
     NS_LOG_INFO ("retardoPropActual: " << retardoPropActual.GetDouble());
     NS_LOG_INFO ("***************************");
     //Configuración del parametro (retardo de propagacion)
-    canal->SetAttribute ("Delay", retardoPropActual);
+    canal->SetAttribute ("Delay", TimeValue(retardoPropActual));
     //Creacion de una nueva curva
     Gnuplot2dDataset dataset;
     for (int j = 0; j < 10; j++) {
@@ -139,7 +139,7 @@ main (int argc, char *argv[])
   NS_LOG_INFO ("############################");
 
   //Configuracion de la constante (retardo de propagacion)
-  canal->SetAttribute ("Delay", retardoPropMedio);
+  canal->SetAttribute ("Delay", TimeValue(retardoPropMedio));
   //Bucle para la creación de cada curva
   for (i = 0; i < 5; i++) {
     //Calculo del parametro (velocidad de transmision)
@@ -147,7 +147,7 @@ main (int argc, char *argv[])
     NS_LOG_INFO ("velocidadTxActual: " << velocidadTxActual.GetBitRate());
     NS_LOG_INFO ("***************************");
     //Configuracion del parametro (velocidad transmision)
-    dispTx->SetAttribute ("DataRate", velocidadTxActual);
+    dispTx->SetAttribute ("DataRate", DataRateValue(velocidadTxActual));
     //Creacion de la curva
     Gnuplot2dDataset dataset;
     for (j = 0; j < 10; j++) {
