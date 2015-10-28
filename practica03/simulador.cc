@@ -141,7 +141,7 @@ main (int argc, char *argv[])
   //Configuracion de la constante (retardo de propagacion)
   canal->SetAttribute ("Delay", TimeValue(retardoPropMedio));
   //Bucle para la creación de cada curva
-  for (i = 0; i < 5; i++) {
+  for (int i = 0; i < 5; i++) {
     //Calculo del parametro (velocidad de transmision)
     DataRate velocidadTxActual(velocidadTxDesde.GetBitRate() + i * (velocidadTxHasta.GetBitRate() - velocidadTxDesde.GetBitRate()) / 4);
     NS_LOG_INFO ("velocidadTxActual: " << velocidadTxActual.GetBitRate());
@@ -150,7 +150,7 @@ main (int argc, char *argv[])
     dispTx->SetAttribute ("DataRate", DataRateValue(velocidadTxActual));
     //Creacion de la curva
     Gnuplot2dDataset dataset;
-    for (j = 0; j < 10; j++) {
+    for (int j = 0; j < 10; j++) {
       //Calculo del temporizador de retransmision
       Time tRetransmisionActual(tRetransmisionDesde.GetDouble() + j * (tRetransmisionHasta.GetDouble() - tRetransmisionDesde.GetDouble() / 9));
       //Configuracion de aplicacion (temporizador de retransmision)          
