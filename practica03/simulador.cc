@@ -21,12 +21,12 @@ main (int argc, char *argv[])
   Time::SetResolution (Time::MS);
 
   //Variables para parametros de linea de comandos
-  DataRate velocidadTxDesde("1Kbps");
+  DataRate velocidadTxDesde("1Mbps");
   DataRate velocidadTxHasta("100Mbps");
-  Time     retardoPropDesde(1);
-  Time     retardoPropHasta(100);
-  Time     tRetransmisionDesde(1);  
-  Time     tRetransmisionHasta(1000);
+  Time     retardoPropDesde("1ms");
+  Time     retardoPropHasta("100ms");
+  Time     tRetransmisionDesde("1ms");  
+  Time     tRetransmisionHasta("1000ms");
 
   //Obtencion de parametros por linea de comandos
   CommandLine cmd;
@@ -37,7 +37,8 @@ main (int argc, char *argv[])
   cmd.AddValue("tRetransmisionDesde", "temporizador de retransmisiones inicial", tRetransmisionDesde);
   cmd.AddValue("tRetransmisionHasta", "temporizador de retransmisiones final", tRetransmisionHasta);
   cmd.Parse(argc, argv);
-
+  
+  /*
   // Componentes del escenario:
   // Dos nodos
   Ptr<Node> nodoTx = CreateObject<Node> ();
@@ -65,6 +66,7 @@ main (int argc, char *argv[])
   // Asociamos los dos dispositivos al canal
   dispTx->Attach (canal);
   dispRx->Attach (canal);
+  */
 
   /*// Modificamos los parámetos configurables
   canal->SetAttribute ("Delay", StringValue ("2ms"));
@@ -92,16 +94,12 @@ main (int argc, char *argv[])
   DataRate velocidadTxMedia((velocidadTxDesde.GetBitRate() + velocidadTxHasta.GetBitRate()) / 2);
   NS_LOG_INFO ("velocidadTxMedia: " << velocidadTxMedia.GetBitRate());
   NS_LOG_INFO ("############################");
-  //Configuracion de la constante (velocidad transmision)  
-  dispTx->SetAttribute ("DataRate", DataRateValue(velocidadTxMedia));
   //Bucle para la creación de cada curva
   for (int i = 0; i < 5 ; i++) {  
     //Calculo del parametro (retardo de propagacion)
     Time retardoPropActual(retardoPropDesde.GetDouble() + i * (retardoPropHasta.GetDouble() - retardoPropDesde.GetDouble()) / 4);
     NS_LOG_INFO ("retardoPropActual: " << retardoPropActual.GetDouble());
     NS_LOG_INFO ("***************************");
-    //Configuración del parametro (retardo de propagacion)
-    canal->SetAttribute ("Delay", TimeValue(retardoPropActual));
     //Creacion de una nueva curva
     Gnuplot2dDataset dataset;
     for (int j = 0; j < 10; j++) {
@@ -132,8 +130,13 @@ main (int argc, char *argv[])
       // Asociamos los dos dispositivos al canal
       dispTx->Attach (canal);
       dispRx->Attach (canal);      
+      //Modificamos los parametros configurables
+      canal->SetAttribute("Delay", TimeValue(retardoPropActual));
+      dispTx->SetAttribute("DataRate", DataRateValue(velocidadTxMedia));
+
       transmisor.SetStartTime (Seconds (1.0));
       transmisor.SetStopTime (Seconds (10.0));
+      
       Simulator::Run ();  
       Simulator::Destroy ();
       dataset.Add(tRetransmisionActual.GetDouble(), transmisor.TotalDatos());
@@ -161,16 +164,12 @@ main (int argc, char *argv[])
   NS_LOG_INFO ("retardoPropMedio: " << retardoPropMedio.GetDouble());
   NS_LOG_INFO ("############################");
 
-  //Configuracion de la constante (retardo de propagacion)
-  canal->SetAttribute ("Delay", TimeValue(retardoPropMedio));
   //Bucle para la creación de cada curva
   for (int i = 0; i < 5; i++) {
     //Calculo del parametro (velocidad de transmision)
     DataRate velocidadTxActual(velocidadTxDesde.GetBitRate() + i * (velocidadTxHasta.GetBitRate() - velocidadTxDesde.GetBitRate()) / 4);
     NS_LOG_INFO ("velocidadTxActual: " << velocidadTxActual.GetBitRate());
     NS_LOG_INFO ("***************************");
-    //Configuracion del parametro (velocidad transmision)
-    dispTx->SetAttribute ("DataRate", DataRateValue(velocidadTxActual));
     //Creacion de la curva
     Gnuplot2dDataset dataset;
     for (int j = 0; j < 10; j++) {
@@ -202,6 +201,10 @@ main (int argc, char *argv[])
       // Asociamos los dos dispositivos al canal
       dispTx->Attach (canal);
       dispRx->Attach (canal);      
+      //Modificamos los parametros configurables
+      canal->SetAttribute("Delay", TimeValue(retardoPropMedio));    
+      dispTx->SetAttribute("DataRate", DataRateValue(velocidadTxActual));
+
       transmisor.SetStartTime (Seconds (1.0));
       transmisor.SetStopTime (Seconds (10.0));
       Simulator::Run ();  
