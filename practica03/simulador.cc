@@ -22,11 +22,11 @@ main (int argc, char *argv[])
 
   //Variables para parametros de linea de comandos
   DataRate velocidadTxDesde('1kbps');
-  DataRate velocidadTxHasta('10mbps');
-  Time     retardoPropDesde('1ms');
-  Time     retardoPropHasta('100ms');
-  Time     tRetransmisionDesde('1ms');  
-  Time     tRetransmisionHasta('100ms');
+  DataRate velocidadTxHasta('100mbps');
+  Time     retardoPropDesde(1);
+  Time     retardoPropHasta(100);
+  Time     tRetransmisionDesde(1);  
+  Time     tRetransmisionHasta(1000);
 
   //Obtencion de parametros por linea de comandos
   CommandLine cmd;
