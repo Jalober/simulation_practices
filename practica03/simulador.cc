@@ -40,7 +40,7 @@ main (int argc, char *argv[])
 
   // Componentes del escenario:
   // Dos nodos
-  //Ptr<Node> nodoTx = CreateObject<Node> ();
+  Ptr<Node> nodoTx = CreateObject<Node> ();
   Ptr<Node> nodoRx = CreateObject<Node> ();
   // Dos dispositivos de red
   Ptr<PointToPointNetDevice> dispTx = CreateObject<PointToPointNetDevice> ();
@@ -48,7 +48,7 @@ main (int argc, char *argv[])
   // Un canal punto a punto
   Ptr<PointToPointChannel> canal = CreateObject<PointToPointChannel> ();;
   // Una aplicación transmisora
-  //BitAlternanteTx transmisor(dispRx, Time("10ms"), 994);
+  BitAlternanteTx transmisor(dispRx, Time("10ms"), 994);
   // Y una receptora
   BitAlternanteRx receptor(dispTx);
 
@@ -57,13 +57,13 @@ main (int argc, char *argv[])
   dispTx->SetQueue (CreateObject<DropTailQueue> ());
   dispRx->SetQueue (CreateObject<DropTailQueue> ());
   // Añadimos cada dispositivo a su nodo
-  //nodoTx->AddDevice (dispTx);
+  nodoTx->AddDevice (dispTx);
   nodoRx->AddDevice (dispRx);
   // Añadimos cada aplicación a su nodo
-  //nodoTx->AddApplication(&transmisor);
+  nodoTx->AddApplication(&transmisor);
   nodoRx->AddApplication(&receptor);
   // Asociamos los dos dispositivos al canal
-  //dispTx->Attach (canal);
+  dispTx->Attach (canal);
   dispRx->Attach (canal);
 
   /*// Modificamos los parámetos configurables
@@ -107,14 +107,31 @@ main (int argc, char *argv[])
     for (int j = 0; j < 10; j++) {
       //Calculo del temporizador de retransmision
       Time tRetransmisionActual(tRetransmisionDesde.GetDouble() + j * (tRetransmisionHasta.GetDouble() - tRetransmisionDesde.GetDouble()) / 9);
-      //Configuracion de aplicacion (temporizador de retransmision)          
+      //Creacion del escenario para la simulacion         
       Ptr<Node> nodoTx = CreateObject<Node> ();
+      Ptr<Node> nodoRx = CreateObject<Node> ();
+      // Dos dispositivos de red
       Ptr<PointToPointNetDevice> dispTx = CreateObject<PointToPointNetDevice> ();
-      dispTx->SetQueue (CreateObject<DropTailQueue> ());
-      nodoTx->AddDevice (dispTx);
-      dispTx->Attach (canal);
+      Ptr<PointToPointNetDevice> dispRx = CreateObject<PointToPointNetDevice> ();
+      // Un canal punto a punto
+      Ptr<PointToPointChannel> canal = CreateObject<PointToPointChannel> ();;
+      // Una aplicación transmisora
       BitAlternanteTx transmisor(dispRx, tRetransmisionActual, TAM_PAQUETE);
+      // Y una receptora
+      BitAlternanteRx receptor(dispTx);
+      // Montamos el escenario:
+      // Añadimos una cola a cada dispositivo
+      dispTx->SetQueue (CreateObject<DropTailQueue> ());
+      dispRx->SetQueue (CreateObject<DropTailQueue> ());
+      // Añadimos cada dispositivo a su nodo
+      nodoTx->AddDevice (dispTx);
+      nodoRx->AddDevice (dispRx);
+      // Añadimos cada aplicación a su nodo
       nodoTx->AddApplication(&transmisor);
+      nodoRx->AddApplication(&receptor);
+      // Asociamos los dos dispositivos al canal
+      dispTx->Attach (canal);
+      dispRx->Attach (canal);      
       transmisor.SetStartTime (Seconds (1.0));
       transmisor.SetStopTime (Seconds (10.0));
       Simulator::Run ();  
@@ -160,13 +177,31 @@ main (int argc, char *argv[])
       //Calculo del temporizador de retransmision
       Time tRetransmisionActual(tRetransmisionDesde.GetDouble() + j * (tRetransmisionHasta.GetDouble() - tRetransmisionDesde.GetDouble()) / 9);
       //Configuracion de aplicacion (temporizador de retransmision)          
+      //Creacion del escenario para la simulacion         
       Ptr<Node> nodoTx = CreateObject<Node> ();
+      Ptr<Node> nodoRx = CreateObject<Node> ();
+      // Dos dispositivos de red
       Ptr<PointToPointNetDevice> dispTx = CreateObject<PointToPointNetDevice> ();
-      dispTx->SetQueue (CreateObject<DropTailQueue> ());
-      nodoTx->AddDevice (dispTx);
-      dispTx->Attach (canal);
+      Ptr<PointToPointNetDevice> dispRx = CreateObject<PointToPointNetDevice> ();
+      // Un canal punto a punto
+      Ptr<PointToPointChannel> canal = CreateObject<PointToPointChannel> ();;
+      // Una aplicación transmisora
       BitAlternanteTx transmisor(dispRx, tRetransmisionActual, TAM_PAQUETE);
+      // Y una receptora
+      BitAlternanteRx receptor(dispTx);
+      // Montamos el escenario:
+      // Añadimos una cola a cada dispositivo
+      dispTx->SetQueue (CreateObject<DropTailQueue> ());
+      dispRx->SetQueue (CreateObject<DropTailQueue> ());
+      // Añadimos cada dispositivo a su nodo
+      nodoTx->AddDevice (dispTx);
+      nodoRx->AddDevice (dispRx);
+      // Añadimos cada aplicación a su nodo
       nodoTx->AddApplication(&transmisor);
+      nodoRx->AddApplication(&receptor);
+      // Asociamos los dos dispositivos al canal
+      dispTx->Attach (canal);
+      dispRx->Attach (canal);      
       transmisor.SetStartTime (Seconds (1.0));
       transmisor.SetStopTime (Seconds (10.0));
       Simulator::Run ();  
