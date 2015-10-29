@@ -63,7 +63,7 @@ main (int argc, char *argv[])
   //nodoTx->AddApplication(&transmisor);
   nodoRx->AddApplication(&receptor);
   // Asociamos los dos dispositivos al canal
-  dispTx->Attach (canal);
+  //dispTx->Attach (canal);
   dispRx->Attach (canal);
 
   /*// Modificamos los parámetos configurables
@@ -109,10 +109,12 @@ main (int argc, char *argv[])
       Time tRetransmisionActual(tRetransmisionDesde.GetDouble() + j * (tRetransmisionHasta.GetDouble() - tRetransmisionDesde.GetDouble()) / 9);
       //Configuracion de aplicacion (temporizador de retransmision)          
       Ptr<Node> nodoTx = CreateObject<Node> ();
+      Ptr<PointToPointNetDevice> dispTx = CreateObject<PointToPointNetDevice> ();
+      dispTx->SetQueue (CreateObject<DropTailQueue> ());
       nodoTx->AddDevice (dispTx);
+      dispTx->Attach (canal);
       BitAlternanteTx transmisor(dispRx, tRetransmisionActual, TAM_PAQUETE);
-      nodoTx->AddApplication(&transmisor);  
-
+      nodoTx->AddApplication(&transmisor);
       transmisor.SetStartTime (Seconds (1.0));
       transmisor.SetStopTime (Seconds (10.0));
       Simulator::Run ();  
@@ -126,7 +128,6 @@ main (int argc, char *argv[])
     //Añadimos el dataset a la grafica
     plot1.AddDataset(dataset);
   }
-
   
   /*
    * SEGUNDA GRAFICA
@@ -160,10 +161,12 @@ main (int argc, char *argv[])
       Time tRetransmisionActual(tRetransmisionDesde.GetDouble() + j * (tRetransmisionHasta.GetDouble() - tRetransmisionDesde.GetDouble()) / 9);
       //Configuracion de aplicacion (temporizador de retransmision)          
       Ptr<Node> nodoTx = CreateObject<Node> ();
+      Ptr<PointToPointNetDevice> dispTx = CreateObject<PointToPointNetDevice> ();
+      dispTx->SetQueue (CreateObject<DropTailQueue> ());
       nodoTx->AddDevice (dispTx);
+      dispTx->Attach (canal);
       BitAlternanteTx transmisor(dispRx, tRetransmisionActual, TAM_PAQUETE);
-      nodoTx->AddApplication(&transmisor);      
-
+      nodoTx->AddApplication(&transmisor);
       transmisor.SetStartTime (Seconds (1.0));
       transmisor.SetStopTime (Seconds (10.0));
       Simulator::Run ();  
