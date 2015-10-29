@@ -21,8 +21,8 @@ main (int argc, char *argv[])
   Time::SetResolution (Time::MS);
 
   //Variables para parametros de linea de comandos
-  DataRate velocidadTxDesde('1kbps');
-  DataRate velocidadTxHasta('100mbps');
+  DataRate velocidadTxDesde("1kbps");
+  DataRate velocidadTxHasta("100mbps");
   Time     retardoPropDesde(1);
   Time     retardoPropHasta(100);
   Time     tRetransmisionDesde(1);  
