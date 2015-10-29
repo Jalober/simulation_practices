@@ -67,6 +67,7 @@ BitAlternanteTx::VenceTemporizador()
   NS_LOG_FUNCTION_NOARGS ();
   NS_LOG_DEBUG("¡¡¡TIMEOUT!!! Reenviando");
   // Reenviamos el último paquete transmitido
+  m_paquete = Create<Packet> (&m_tx, m_tamPqt + 1);
   EnviaPaquete ();
 }
 
