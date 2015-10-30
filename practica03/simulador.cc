@@ -7,6 +7,7 @@
 #include <ns3/drop-tail-queue.h>
 #include <ns3/gnuplot.h>
 #include "BitAlternante.h"
+#include <sstream>
 
 #define TAM_PAQUETE 994
 
@@ -21,12 +22,14 @@ main (int argc, char *argv[])
   Time::SetResolution (Time::MS);
 
   //Variables para parametros de linea de comandos
-  DataRate velocidadTxDesde("1Mbps");
-  DataRate velocidadTxHasta("100Mbps");
+
+  DataRate velocidadTxDesde("500Kbps");
+  DataRate velocidadTxHasta("2Mbps");
   Time     retardoPropDesde("1ms");
-  Time     retardoPropHasta("100ms");
-  Time     tRetransmisionDesde("1ms");  
-  Time     tRetransmisionHasta("1000ms");
+  Time     retardoPropHasta("10ms");
+  Time     tRetransmisionDesde("2ms");
+  Time     tRetransmisionHasta("10ms");
+
 
   //Obtencion de parametros por linea de comandos
   CommandLine cmd;
@@ -88,7 +91,7 @@ main (int argc, char *argv[])
   NS_LOG_INFO ("# PRIMERA GRAFICA ##########");
   NS_LOG_INFO ("############################");
   Gnuplot plot1;
-  //TODO: plot1.SetTitle("");
+  plot1.SetTitle("Primera grafica de la practica 3");
   
   //Calculo de la velocidad de transmision media
   DataRate velocidadTxMedia((velocidadTxDesde.GetBitRate() + velocidadTxHasta.GetBitRate()) / 2);
@@ -100,8 +103,13 @@ main (int argc, char *argv[])
     Time retardoPropActual(retardoPropDesde.GetDouble() + i * (retardoPropHasta.GetDouble() - retardoPropDesde.GetDouble()) / 4);
     NS_LOG_INFO ("retardoPropActual: " << retardoPropActual.GetDouble());
     NS_LOG_INFO ("***************************");
+    
     //Creacion de una nueva curva
     Gnuplot2dDataset dataset;
+    std::ostringstream rotulo;
+    rotulo << "Rprop: " << retardoPropActual;
+    dataset.SetTitle(rotulo.str());
+    
     for (int j = 0; j < 10; j++) {
       //Calculo del temporizador de retransmision
       Time tRetransmisionActual(tRetransmisionDesde.GetDouble() + j * (tRetransmisionHasta.GetDouble() - tRetransmisionDesde.GetDouble()) / 9);
@@ -157,7 +165,7 @@ main (int argc, char *argv[])
   NS_LOG_INFO ("############################");
 
   Gnuplot plot2;
-  //TODO: plot2.SetTitle("");
+  plot2.SetTitle("Segunda grafica de la practica 3");
   
   //Calculo del retardo de propagacion
   Time retardoPropMedio((retardoPropDesde.GetDouble() + retardoPropHasta.GetDouble()) / 2);
@@ -170,8 +178,13 @@ main (int argc, char *argv[])
     DataRate velocidadTxActual(velocidadTxDesde.GetBitRate() + i * (velocidadTxHasta.GetBitRate() - velocidadTxDesde.GetBitRate()) / 4);
     NS_LOG_INFO ("velocidadTxActual: " << velocidadTxActual.GetBitRate());
     NS_LOG_INFO ("***************************");
+
     //Creacion de la curva
     Gnuplot2dDataset dataset;
+    std::ostringstream rotulo;
+    rotulo << "vTx: " << velocidadTxActual;
+    dataset.SetTitle(rotulo.str());
+
     for (int j = 0; j < 10; j++) {
       //Calculo del temporizador de retransmision
       Time tRetransmisionActual(tRetransmisionDesde.GetDouble() + j * (tRetransmisionHasta.GetDouble() - tRetransmisionDesde.GetDouble()) / 9);
@@ -220,6 +233,18 @@ main (int argc, char *argv[])
   }
 
   //NS_LOG_UNCOND ("Total paquetes: " << transmisor.TotalDatos());
+  
+  std::ofstream plotFile1 ("practica03-1.plt");
+  plot1.GenerateOutput (plotFile1);
+  plotFile1 << "pause -1" << std::endl;
+  plotFile1.close ();
+
+  std::ofstream plotFile2 ("practica03-2.plt");
+  plot2.GenerateOutput (plotFile2);
+  plotFile2 << "pause -1" << std::endl;
+  plotFile2.close();
+
 
   return 0;
 }
+
