@@ -5,6 +5,8 @@
 #include <ns3/packet.h>
 #include "BitAlternante.h"
 
+#define TAM_VENTANA 2
+
 using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("BitAlternante");
@@ -46,18 +48,19 @@ BitAlternanteTx::ACKRecibido(Ptr<NetDevice>        receptor,
 
   // Comprobamos si el número de secuencia del ACK se corresponde con
   // el de secuencia del siguiente paquete a transmitir
-  if (contenido == 1 - m_tx) 
-    {
-      // Si es correcto desactivo el temporizador
-      Simulator::Cancel(m_temporizador);
-      // Cambiamos el número de secuencia
-      m_tx = 1 - m_tx;
-      // Incrementamos el total de paquetes
-      m_totalPqt++;
-      // Se transmite un nuevo paquete
-      m_paquete = Create<Packet> (&m_tx, m_tamPqt + 1);
-      EnviaPaquete();   
+  if (contenido == m_tx + 1 || TAM_VENTANA - contenido == 0) {
+     // Si es correcto desactivo el temporizador
+    Simulator::Cancel(m_temporizador);
+    // Cambiamos el número de secuencia
+    if (++m_tx == TAM_VENTANA + 1) {
+      m_tx = 0;
     }
+    // Incrementamos el total de paquetes
+    m_totalPqt++;
+    // Se transmite un nuevo paquete
+    m_paquete = Create<Packet> (&m_tx, m_tamPqt + 1);
+    EnviaPaquete();   
+  }
 }
 
 
@@ -131,7 +134,9 @@ BitAlternanteRx::PaqueteRecibido(Ptr<NetDevice>        receptor,
   // Si el número de secuencia es correcto
   if (contenido == m_rx)
     // Si es correcto, cambio el bit
-    m_rx = 1 - m_rx;
+    if (++m_rx == TAM_VENTANA + 1) {
+      m_rx = 0;
+    }
   // Transmito en cualquier caso un ACK
   EnviaACK();
 }
