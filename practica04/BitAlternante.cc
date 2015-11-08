@@ -102,6 +102,7 @@ BitAlternanteTx::CompruebaACK(uint8_t contenido) {
 void BitAlternanteTx::IncrementaNumSeq() {
   if (++m_tx == 2 * m_tamVentana)
     m_tx = 0;
+  NS_LOG_FUNCTION("IncrementaNumSeq -> m_tx = " << m_tx);
 }
 
 
@@ -137,9 +138,9 @@ BitAlternanteTx::EnviaPaquete()
                  " octetos en nodo " << m_node->GetId() <<
                  " con " << (unsigned int) m_tx <<
                  " en " << Simulator::Now());
-    NS_LOG_FUNCTION ("Salimos del bucle");
-  }
 
+  }
+  NS_LOG_FUNCTION ("Salimos del bucle");
   // Programo el temporizador
   if (m_esperaACK != 0)
     m_temporizador = Simulator::Schedule (m_esperaACK, &BitAlternanteTx::VenceTemporizador, this);
