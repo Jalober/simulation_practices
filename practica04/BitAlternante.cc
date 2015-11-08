@@ -102,7 +102,8 @@ BitAlternanteTx::CompruebaACK(uint8_t contenido) {
 void BitAlternanteTx::IncrementaNumSeq() {
   if (++m_tx == 2 * m_tamVentana)
     m_tx = 0;
-  NS_LOG_FUNCTION("IncrementaNumSeq -> m_tx = " << m_tx);
+  
+  NS_LOG_FUNCTION("m_tx = " << m_tx);
 }
 
 
