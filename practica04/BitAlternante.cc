@@ -86,15 +86,14 @@ BitAlternanteTx::ACKRecibido(Ptr<NetDevice>        receptor,
 int
 BitAlternanteTx::CompruebaACK(uint8_t contenido) {
   
-  int resultado = 0;
-  uint32_t contenido32 = (uint32_t) contenido;
+  int resultado = 0;  
   //Evitamos el desborde
-  if (contenido32 < m_inicioVentana) {
-    contenido32 = contenido32 + m_tamVentana;
+  if (contenido < m_inicioVentana) {
+    contenido = contenido + m_tamVentana;
   }  
 
-  if (contenido32 > m_inicioVentana &&
-      contenido32 <= m_inicioVentana + m_tamVentana + 1) {
+  if (contenido > m_inicioVentana &&
+      contenido <= m_inicioVentana + m_tamVentana + 1) {
     resultado = 1;
   }
   return resultado;
