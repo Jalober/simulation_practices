@@ -186,7 +186,7 @@ BitAlternanteRx::PaqueteRecibido(Ptr<NetDevice>        receptor,
   // Si el número de secuencia es correcto
   if (contenido == m_rx) {
     // Si es correcto, incrementamos el numero de secuencia
-    IncrementaNumSeq()
+    IncrementaNumSeq();
   }
   // Transmito en cualquier caso un ACK
   EnviaACK();
