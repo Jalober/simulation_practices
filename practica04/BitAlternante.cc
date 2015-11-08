@@ -5,24 +5,25 @@
 #include <ns3/packet.h>
 #include "BitAlternante.h"
 
-#define TAM_VENTANA 2
-
 using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("BitAlternante");
 
 BitAlternanteTx::BitAlternanteTx(Ptr<NetDevice> disp,
                                  Time           espera,
-                                 uint32_t       tamPqt)
+                                 uint32_t       tamPqt, 
+                                 uint8_t        tamVentana)
 {
   NS_LOG_FUNCTION (disp << espera << tamPqt);
 
   // Inicializamos las variables privadas
-  m_disp      = disp;
-  m_esperaACK = espera;
-  m_tamPqt    = tamPqt;
-  m_tx        = 0;
-  m_totalPqt  = 0;   
+  m_disp          = disp;
+  m_esperaACK     = espera;
+  m_tamPqt        = tamPqt;
+  m_inicioVentana = 0;
+  m_tamVentana    = tamVentana;
+  m_tx            = m_inicioVentana;
+  m_totalPqt      = 0;
 }
 
 
@@ -46,21 +47,57 @@ BitAlternanteTx::ACKRecibido(Ptr<NetDevice>        receptor,
   NS_LOG_DEBUG ("    Recibido ACK en nodo " << m_node->GetId() << " con "
                 << (unsigned int) contenido);
 
+  /* Comprobamos si el siguiente paquete a enviar (valor de ACK) es el
+     de inicio de ventana. En ese caso enviamos reenviamos todos los paquetes
+     de la ventana (ha habido un error) */
+  if (contenido == m_inicioVentana) {
+    m_tx = m_inicioVentana;
+    EnviaPaquete();
+  }
+  /* Comprobamos que el siguiente paquete a enviar se encuentra entre 
+  los valores esperados */ 
+  else if (CompruebaACK(contenido)) {
+    //El valor es valido, por lo que avanzamos la ventana
+    m_inicioVentana = contenido;
+    //Enviamos los paquetes que faltan por enviar en la ventana
+    EnviaPaquete();
+  }
+  
+  /* Si el valor esta fuera de la ventana, el paquete es ignorado */
+
+
   // Comprobamos si el número de secuencia del ACK se corresponde con
   // el de secuencia del siguiente paquete a transmitir
-  if (contenido == m_tx + 1 || TAM_VENTANA - contenido == 0) {
+  /*if (contenido == m_tx + 1 || 2 * tamVentana - contenido == 0) {
      // Si es correcto desactivo el temporizador
     Simulator::Cancel(m_temporizador);
-    // Cambiamos el número de secuencia
-    if (++m_tx == TAM_VENTANA + 1) {
+    // Incrementamos el numero de secuencia
+    if (++m_tx == 2 * m_tamVentana + 1) {
       m_tx = 0;
     }
-    // Incrementamos el total de paquetes
+    // Incrementamos el total de paquetes (ELIMINAR)
     m_totalPqt++;
     // Se transmite un nuevo paquete
     m_paquete = Create<Packet> (&m_tx, m_tamPqt + 1);
     EnviaPaquete();   
+  }*/
+}
+
+int
+BitAlternanteTx::CompruebaACK(uint8_t contenido) {
+  
+  int resultado = 0;
+  uint32_t contenido32 = (uint32_t) contenido;
+  //Evitamos el desborde
+  if (contenido32 < m_inicioVentana) {
+    contenido32 = contenido32 + m_tamVentana;
+  }  
+
+  if (contenido32 > m_inicioVentana &&
+      contenido32 <= m_inicioVentana + m_tamVentana + 1) {
+    resultado = 1;
   }
+  return resultado;
 }
 
 
@@ -75,18 +112,28 @@ BitAlternanteTx::VenceTemporizador()
 }
 
 
+/**
+ * EnviaPaquete: transmite paquetes deste m_tx hasta el final de la ventana.
+ */
 void
 BitAlternanteTx::EnviaPaquete()
 {
   NS_LOG_FUNCTION_NOARGS ();
 
-  // Envío el paquete
-  m_node->GetDevice(0)->Send(m_paquete, m_disp->GetAddress(), 0x0800);
+  // Paquete a enviar 
+  Ptr<Packet> m_paquete;
+  
+  //Se transmiten los paquetes desde m_tx hasta el final de la ventana
+  for ( ; m_tx <= m_inicioVentana + m_tamVentana; m_tx++) {}  
+    // Envío el paquete  
+    m_paquete = Create<Packet> (&m_tx, m_tamPqt + 1);
+    m_node->GetDevice(0)->Send(m_paquete, m_disp->GetAddress(), 0x0800);
 
-  NS_LOG_DEBUG ("Transmitido paquete de " << m_paquete->GetSize () <<
-               " octetos en nodo " << m_node->GetId() <<
-               " con " << (unsigned int) m_tx <<
-               " en " << Simulator::Now());
+    NS_LOG_DEBUG ("Transmitido paquete de " << m_paquete->GetSize () <<
+                 " octetos en nodo " << m_node->GetId() <<
+                 " con " << (unsigned int) m_tx <<
+                 " en " << Simulator::Now());
+  }
 
   // Programo el temporizador
   if (m_esperaACK != 0)
@@ -133,8 +180,8 @@ BitAlternanteRx::PaqueteRecibido(Ptr<NetDevice>        receptor,
                 << (unsigned int) contenido);
   // Si el número de secuencia es correcto
   if (contenido == m_rx)
-    // Si es correcto, cambio el bit
-    if (++m_rx == TAM_VENTANA + 1) {
+    // Si es correcto, incrementamos el numero de secuencia
+    if (++m_rx == 2 * m_tamVentana + 1) {
       m_rx = 0;
     }
   // Transmito en cualquier caso un ACK
@@ -154,3 +201,5 @@ BitAlternanteRx::EnviaACK()
                 " en " << Simulator::Now());
   m_node->GetDevice(0)->Send(p, m_disp->GetAddress(), 0x0800);
 }
+
+

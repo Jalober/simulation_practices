@@ -22,6 +22,7 @@ main (int argc, char *argv[])
   uint32_t tamPaquete = 994;
   Time     rprop      = Time("2ms");
   DataRate vtx        = DataRate("1000kbps");
+  uint8_t  tamVentana = 2;
 
   // Configuramos el escenario:
   PointToPointHelper escenario;
@@ -39,7 +40,7 @@ main (int argc, char *argv[])
   dispositivos.Get (0)->TraceConnectWithoutContext ("MacRx", MakeCallback(&Observador::PaqueteAsentido, &observador));
 
   // Una aplicación transmisora
-  BitAlternanteTx transmisor (dispositivos.Get (1), trtx, tamPaquete);
+  BitAlternanteTx transmisor (dispositivos.Get (1), trtx, tamPaquete, tamVentana);
   // Y una receptora
   BitAlternanteRx receptor(dispositivos.Get (0));
   // Añadimos cada aplicación a su nodo
@@ -56,7 +57,7 @@ main (int argc, char *argv[])
   NS_LOG_DEBUG ("TamPaquete: " << tamPaquete + 6);
   NS_LOG_DEBUG ("Vtx: " << vtx);
   NS_LOG_DEBUG ("Rprop: " << rprop);
-  NS_LOG_DEBUG ("RTT: " << vtx.CalculateTxTime (tamPaquete + 6) + 2 * rprop);
+  NS_LOG_DEBUG ("RTT: " << Seconds(vtx.CalculateTxTime (tamPaquete + 6)) + 2 * rprop); //Enunciado modificado
   NS_LOG_DEBUG ("Temporizador: " << trtx);
   NS_LOG_INFO  ("Total paquetes: " << observador.TotalPaquetes ());
   

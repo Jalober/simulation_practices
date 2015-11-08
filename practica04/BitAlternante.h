@@ -6,6 +6,8 @@ using namespace ns3;
 #include "ns3/net-device.h"
 #include "ns3/application.h"
 
+#define TAM_VENTANA 2
+
 class BitAlternanteTx : public Application
 {
 public:
@@ -49,9 +51,7 @@ private:
   // Método que se llama en el instante de comienzo de la aplicación.
   void StartApplication()
   {
-    // Formamos el primer paquete
-    m_paquete = Create<Packet> (&m_tx, m_tamPqt + 1);
-    // Y lo enviamos
+    //Envio de los primeros paquetes    
     EnviaPaquete();
   }
 
@@ -66,15 +66,19 @@ private:
   // Temporizador de retransmisión
   Time           m_esperaACK;
   // Tamaño del paquete
-  uint32_t       m_tamPqt;
-  // Número de secuencia de los paquetes a transmitir
-  uint8_t        m_tx;
+  uint32_t       m_tamPqt;  
   // Evento de retransmision
-  EventId        m_temporizador;
+  EventId        m_temporizador;    
+  // Inicio de ventana de transmision
+  uint8_t        m_inicioVentana;
+  // Tamanio de ventana de transmision
+  uint8_t        m_tamVentana;
+  // Número de secuencia del paquete a transmitir
+  uint8_t        m_tx;
+  // Paquete a enviar 
+  Ptr<Packet>    m_paquete;
   // Acumulador de paquetes bien asentidos.
   int            m_totalPqt;
-  // Paquete a enviar (debe guardarse por si hay retransmisiones
-  Ptr<Packet>    m_paquete;
 };
 
 
