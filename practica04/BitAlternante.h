@@ -94,7 +94,7 @@ public:
 
   // Constructor de la clase. Necesita como parámetro el puntero al dispositivo
   // de red con el que debe comunicarse.
-  BitAlternanteRx(Ptr<NetDevice>);
+  BitAlternanteRx(Ptr<NetDevice>, uint8_t tamVentana);
 
   // Función para el procesamiento de paquetes recibidos
   // Comprueba si el ACK es el adecuado. Si lo es, desactiva el temporizador de
