@@ -119,8 +119,13 @@ private:
     Application::DoInitialize();
   };
 
+  // Método privado para incrementar el número de secuencia
+  void IncrementaNumSeq();
+
   // Dispositivo de red con el que hay que comunicarse.
   Ptr<NetDevice> m_disp;
   // Número de secuencia de los paquetes a recibir
   uint8_t        m_rx;
+  // Tamanio de ventana de transmision
+  uint8_t        m_tamVentana;
 };

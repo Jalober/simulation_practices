@@ -183,15 +183,18 @@ BitAlternanteRx::PaqueteRecibido(Ptr<NetDevice>        receptor,
   NS_LOG_DEBUG ("    Recibido paquete en nodo " << m_node->GetId() << " con "
                 << (unsigned int) contenido);
   // Si el número de secuencia es correcto
-  if (contenido == m_rx)
+  if (contenido == m_rx) {
     // Si es correcto, incrementamos el numero de secuencia
-    if (++m_rx == 2 * m_tamVentana + 1) {
-      m_rx = 0;
-    }
+    IncrementaNumSeq()
+  }
   // Transmito en cualquier caso un ACK
   EnviaACK();
 }
 
+void BitAlternanteRx::IncrementaNumSeq() {
+  if (++m_rx == 2 * m_tamVentana + 1)
+    m_rx = 0;
+}
 
 void
 BitAlternanteRx::EnviaACK()
