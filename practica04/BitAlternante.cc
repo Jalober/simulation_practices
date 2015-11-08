@@ -137,6 +137,7 @@ BitAlternanteTx::EnviaPaquete()
                  " octetos en nodo " << m_node->GetId() <<
                  " con " << (unsigned int) m_tx <<
                  " en " << Simulator::Now());
+    NS_LOG_FUNCTION ("Salimos del bucle");
   }
 
   // Programo el temporizador
