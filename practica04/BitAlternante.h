@@ -63,6 +63,9 @@ private:
   
   // Método privado para comprobar que el ACK está en la ventana
   int CompruebaACK(uint8_t contenido);
+ 
+  // Método privado para incrementar el número de secuencia
+  void IncrementaNumSeq();
 
   // Dispositivo de red con el que hay que comunicarse.
   Ptr<NetDevice> m_disp;

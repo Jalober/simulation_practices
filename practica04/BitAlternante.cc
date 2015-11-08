@@ -99,6 +99,11 @@ BitAlternanteTx::CompruebaACK(uint8_t contenido) {
   return resultado;
 }
 
+void BitAlternanteTx::IncrementaNumSeq() {
+  if (++m_tx == 2 * m_tamVentana + 1)
+    m_tx = 0;
+}
+
 
 void
 BitAlternanteTx::VenceTemporizador()
@@ -123,7 +128,7 @@ BitAlternanteTx::EnviaPaquete()
   Ptr<Packet> m_paquete;
   
   //Se transmiten los paquetes desde m_tx hasta el final de la ventana
-  for ( ; m_tx <= m_inicioVentana + m_tamVentana; m_tx++) {}  
+  for ( ; m_tx <= m_inicioVentana + m_tamVentana; IncrementaNumSeq()) {  
     // Envío el paquete  
     m_paquete = Create<Packet> (&m_tx, m_tamPqt + 1);
     m_node->GetDevice(0)->Send(m_paquete, m_disp->GetAddress(), 0x0800);
