@@ -60,6 +60,9 @@ private:
   {
     Simulator::Stop ();
   }
+  
+  // Método privado para comprobar que el ACK está en la ventana
+  int CompruebaACK(uint8_t contenido);
 
   // Dispositivo de red con el que hay que comunicarse.
   Ptr<NetDevice> m_disp;
