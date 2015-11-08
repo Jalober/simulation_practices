@@ -93,14 +93,14 @@ BitAlternanteTx::CompruebaACK(uint8_t contenido) {
   }  
 
   if (contenido > m_inicioVentana &&
-      contenido <= m_inicioVentana + m_tamVentana + 1) {
+      contenido <= m_inicioVentana + m_tamVentana) {
     resultado = 1;
   }
   return resultado;
 }
 
 void BitAlternanteTx::IncrementaNumSeq() {
-  if (++m_tx == 2 * m_tamVentana + 1)
+  if (++m_tx == 2 * m_tamVentana)
     m_tx = 0;
 }
 
