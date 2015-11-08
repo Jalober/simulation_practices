@@ -42,7 +42,7 @@ main (int argc, char *argv[])
   // Una aplicación transmisora
   BitAlternanteTx transmisor (dispositivos.Get (1), trtx, tamPaquete, tamVentana);
   // Y una receptora
-  BitAlternanteRx receptor(dispositivos.Get (0));
+  BitAlternanteRx receptor(dispositivos.Get (0), tamVentana);
   // Añadimos cada aplicación a su nodo
   nodos.Get (0)->AddApplication(&transmisor);
   nodos.Get (1)->AddApplication(&receptor);

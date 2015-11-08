@@ -156,12 +156,13 @@ BitAlternanteTx::TotalDatos()
 
 
 
-BitAlternanteRx::BitAlternanteRx(Ptr<NetDevice> disp)
+BitAlternanteRx::BitAlternanteRx(Ptr<NetDevice> disp, uint8_t tamVentana)
 {
   NS_LOG_FUNCTION (disp);
 
   m_disp = disp;
   m_rx   = 0;
+  m_tamVentana = tamVentana;
 }
 
 
