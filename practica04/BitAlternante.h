@@ -15,7 +15,7 @@ public:
   // Constructor de la clase. Necesita como parámetros el puntero al dispositivo de red
   // con el que debe comunicarse, el temporizador de retransmisiones y el tamaño de
   // paquete. Inicializa las variables privadas.
-  BitAlternanteTx(Ptr<NetDevice>, Time, uint32_t tamPqt);
+  BitAlternanteTx(Ptr<NetDevice>, Time, uint32_t tamPqt, uint8_t tamVentana);
 
   // Función para el procesamiento de asentimientos recibidos.
   // Comprueba si el ACK es el adecuado. Si lo es, desactiva el temporizador de
