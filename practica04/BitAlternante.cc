@@ -100,11 +100,11 @@ BitAlternanteTx::CompruebaACK(uint8_t contenido) {
 }
 
 void BitAlternanteTx::IncrementaNumSeq() {
-  NS_LOG_FUNCTION("m_tx inicial = " << m_tx);
+  NS_LOG_FUNCTION("m_tx inicial = " << (unsigned int) m_tx);
   if (++m_tx == 2 * m_tamVentana) {
     m_tx = 0;
   }
-  NS_LOG_FUNCTION("m_tx final = " << m_tx);
+  NS_LOG_FUNCTION("m_tx final = " << (unsigned int) m_tx);
 }
 
 
