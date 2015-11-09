@@ -100,10 +100,11 @@ BitAlternanteTx::CompruebaACK(uint8_t contenido) {
 }
 
 void BitAlternanteTx::IncrementaNumSeq() {
-  if (++m_tx == 2 * m_tamVentana)
+  NS_LOG_FUNCTION("m_tx inicial = " << m_tx);
+  if (++m_tx == 2 * m_tamVentana) {
     m_tx = 0;
-  
-  NS_LOG_FUNCTION("m_tx = " << m_tx);
+  }
+  NS_LOG_FUNCTION("m_tx final = " << m_tx);
 }
 
 
@@ -113,7 +114,6 @@ BitAlternanteTx::VenceTemporizador()
   NS_LOG_FUNCTION_NOARGS ();
   NS_LOG_DEBUG("¡¡¡TIMEOUT!!! Reenviando");
   // Reenviamos el último paquete transmitido
-  m_paquete = Create<Packet> (&m_tx, m_tamPqt + 1);
   EnviaPaquete ();
 }
 

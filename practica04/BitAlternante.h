@@ -81,8 +81,6 @@ private:
   uint8_t        m_tamVentana;
   // Número de secuencia del paquete a transmitir
   uint8_t        m_tx;
-  // Paquete a enviar 
-  Ptr<Packet>    m_paquete;
   // Acumulador de paquetes bien asentidos.
   int            m_totalPqt;
 };
