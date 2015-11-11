@@ -5,6 +5,7 @@ using namespace ns3;
 #include "ns3/node.h"
 #include "ns3/net-device.h"
 #include "ns3/application.h"
+#include "Ventana.h"
 
 #define TAM_VENTANA 2
 
@@ -29,9 +30,6 @@ public:
   
   // Función que envía un paquete.
   void EnviaPaquete();
-
-  // Función que obtiene el total de paquetes correctamente recibidos por el receptor.
-  uint32_t TotalDatos();
 
 private:
   // Método de inicialización de la aplicación.
@@ -60,12 +58,6 @@ private:
   {
     Simulator::Stop ();
   }
-  
-  // Método privado para comprobar que el ACK está en la ventana
-  int CompruebaACK(uint8_t contenido);
- 
-  // Método privado para incrementar el número de secuencia
-  void IncrementaNumSeq();
 
   // Dispositivo de red con el que hay que comunicarse.
   Ptr<NetDevice> m_disp;
@@ -74,15 +66,9 @@ private:
   // Tamaño del paquete
   uint32_t       m_tamPqt;  
   // Evento de retransmision
-  EventId        m_temporizador;    
-  // Inicio de ventana de transmision
-  uint8_t        m_inicioVentana;
-  // Tamanio de ventana de transmision
-  uint8_t        m_tamVentana;
-  // Número de secuencia del paquete a transmitir
-  uint8_t        m_tx;
-  // Acumulador de paquetes bien asentidos.
-  int            m_totalPqt;
+  EventId        m_temporizador;
+  // Objeto para gestion de ventana;
+  Ventana        m_ventana;  
 };
 
 
@@ -123,7 +109,5 @@ private:
   // Dispositivo de red con el que hay que comunicarse.
   Ptr<NetDevice> m_disp;
   // Número de secuencia de los paquetes a recibir
-  uint8_t        m_rx;
-  // Tamanio de ventana de transmision
-  uint8_t        m_tamVentana;
+  uint8_t        m_rx;  
 };

@@ -16,7 +16,7 @@ public:
   // Devuelve el crédito disponible
   uint32_t Credito   ()               { return m_tam - Offset (m_der);}
   // Indica si el valor está dentro de la parte llena de la ventana
-  bool     EnVentana (uint32_t valor) { return Offset (m_der) > Offset (valor); }
+  bool     EnVentana (uint32_t valor) { return Offset (m_der) >= Offset (valor); }
   // Vacía la ventana.
   void     Vacia     ()               { m_der = m_izq; }
   // Desplaza la ventana hacial la derecha
