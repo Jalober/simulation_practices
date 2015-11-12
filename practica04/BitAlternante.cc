@@ -4,6 +4,7 @@
 #include <ns3/callback.h>
 #include <ns3/packet.h>
 #include "BitAlternante.h"
+#include "CabEnlace.h"
 
 using namespace ns3;
 
@@ -35,20 +36,24 @@ BitAlternanteTx::ACKRecibido(Ptr<NetDevice>        receptor,
   NS_LOG_FUNCTION (receptor << recibido->GetSize () <<
                    std::hex << protocolo <<
                    desde << hacia << tipoPaquete);
-  uint8_t contenido;
 
-  // Copiamos el primer octeto del campo de datos del paquete recibido
-  // (que es el que contiene el número de secuencia)
-  recibido->CopyData(&contenido, 1);
-  NS_LOG_DEBUG ("    Recibido ACK en nodo " << m_node->GetId() << " con "
-                << (unsigned int) contenido);
+  //Obtenemos el paquete y almacenamos los valores de la cabecera
+  Ptr<Packet> copia = recibido->Copy ();
+  CabEnlace header;
+  copia->RemoveHeader (header);
+
+  uint8_t tipo = header.GetTipo();
+  uint8_t numSecuencia = header.GetSecuencia();
+  
+  NS_LOG_DEBUG ("    Recibido ACK en nodo " << m_node->GetId() << " de tipo  "
+                << (unsigned int) tipo << " y numSeq "<< (unsigned int) numSecuencia);
 
   //Si numero de secuencia en ventana
-  if (m_ventana.EnVentana((uint32_t) contenido)) {
+  if (m_ventana.EnVentana((uint32_t) numSecuencia)) {
     //Para temporizador
     Simulator::Cancel(m_temporizador);
     //Actualiza ventanaTx
-    m_ventana.Asentida((uint32_t)contenido);
+    m_ventana.Asentida((uint32_t) numSecuencia);
     //Envia 
     EnviaPaquete();
   }
@@ -73,7 +78,7 @@ BitAlternanteTx::EnviaPaquete()
   NS_LOG_FUNCTION_NOARGS ();
 
   // Paquete a enviar 
-  Ptr<Packet> m_paquete;
+  Ptr<Packet> paquete;
   // Num secuencia
   uint8_t m_tx;  
 
@@ -81,12 +86,15 @@ BitAlternanteTx::EnviaPaquete()
   while (m_ventana.Credito()) {
     // Envío el paquete  
     m_tx = (uint8_t) m_ventana.Pendiente();
-    m_paquete = Create<Packet> (&m_tx, m_tamPqt + 1);
-    m_node->GetDevice(0)->Send(m_paquete, m_disp->GetAddress(), 0x0800);
+    paquete = Create<Packet> (m_tamPqt);
+    CabEnlace header;
+    header.SetData (0, m_tx);
+    paquete->AddHeader (header);    
+    m_node->GetDevice(0)->Send(paquete, m_disp->GetAddress(), 0x0800);
 
-    NS_LOG_DEBUG ("Transmitido paquete de " << m_paquete->GetSize () <<
+    NS_LOG_DEBUG ("Transmitido paquete de " << paquete->GetSize () <<
                  " octetos en nodo " << m_node->GetId() <<
-                 " con " << (unsigned int) m_tx <<
+                 " con numSeq " << (unsigned int) m_tx <<
                  " en " << Simulator::Now());
     if (m_esperaACK != 0) {
       if (Simulator::IsExpired(m_temporizador))      
@@ -121,15 +129,19 @@ BitAlternanteRx::PaqueteRecibido(Ptr<NetDevice>        receptor,
   NS_LOG_FUNCTION (receptor << recibido->GetSize () <<
                    std::hex << protocolo <<
                    desde << hacia << tipoPaquete);
-  uint8_t contenido;
 
   // Obtengo el valor del número de secuecia
-  recibido->CopyData(&contenido, 1);
-  NS_LOG_DEBUG ("    Recibido paquete en nodo " << m_node->GetId() << " con "
-                << (unsigned int) contenido);
+  Ptr<Packet> copia = recibido->Copy ();
+  CabEnlace header;
+  copia->RemoveHeader (header);
+  uint8_t tipo = header.GetTipo ();
+  uint8_t numSecuencia = header.GetSecuencia();
+  
+  NS_LOG_DEBUG ("    Recibido paquete en nodo " << m_node->GetId() << " de tipo "
+              << (unsigned int) tipo << " con numSeq"  << (unsigned int) numSecuencia);
   
   // Si el número de secuencia es correcto
-  if (contenido == m_rx) {
+  if (numSecuencia == m_rx) {
     // Si es correcto, incrementamos el numero de secuencia
     m_rx = ++m_rx % (2 * m_tamVentana);      
   }
@@ -142,11 +154,15 @@ void
 BitAlternanteRx::EnviaACK()
 {
   NS_LOG_FUNCTION_NOARGS ();
-  Ptr<Packet> p = Create<Packet> (&m_rx, 1);
+  
+  Ptr<Packet> p = Create<Packet> (0);
+  CabEnlace header;
+  header.SetData (1, m_rx);
+  p->AddHeader (header);
 
   NS_LOG_DEBUG ("  Transmitido ACK de " << p->GetSize () <<
                 " octetos en nodo " << m_node->GetId() <<
-                " con " << (unsigned int) m_rx <<
+                " con numSeq" << (unsigned int) m_rx <<
                 " en " << Simulator::Now());
   m_node->GetDevice(0)->Send(p, m_disp->GetAddress(), 0x0800);
 }
