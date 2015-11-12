@@ -4,7 +4,6 @@
 #include <ns3/callback.h>
 #include <ns3/packet.h>
 #include "BitAlternante.h"
-#include "Ventana.h"
 
 using namespace ns3;
 
@@ -21,7 +20,6 @@ BitAlternanteTx::BitAlternanteTx(Ptr<NetDevice> disp,
   m_disp          = disp;
   m_esperaACK     = espera;
   m_tamPqt        = tamPqt;  
-  m_totalPqt      = 0;
 }
 
 
