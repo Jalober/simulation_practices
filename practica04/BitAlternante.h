@@ -103,6 +103,9 @@ private:
     Application::DoInitialize();
   };
 
+  //tamaño de la ventana de TRANSMISION
+  uint32_t m_tamVentana;
+
   // Método privado para incrementar el número de secuencia
   void IncrementaNumSeq();
 

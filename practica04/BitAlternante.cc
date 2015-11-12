@@ -44,11 +44,11 @@ BitAlternanteTx::ACKRecibido(Ptr<NetDevice>        receptor,
                 << (unsigned int) contenido);
 
   //Si numero de secuencia en ventana
-  if (Ventana::EnVentana((uint32_t) contenido)) {
+  if (m_ventana.EnVentana((uint32_t) contenido)) {
     //Para temporizador
     Simulator::Cancel(m_temporizador);
     //Actualiza ventanaTx
-    Ventana::Asentida((uint32_t)contenido);
+    m_ventana.Asentida((uint32_t)contenido);
     //Envia 
     EnviaPaquete();
   }
@@ -62,6 +62,7 @@ BitAlternanteTx::VenceTemporizador()
   NS_LOG_FUNCTION_NOARGS ();
   NS_LOG_DEBUG("¡¡¡TIMEOUT!!! Reenviando");
   // Reenviamos el último paquete transmitido
+  m_ventana.Vacia();
   EnviaPaquete ();
 }
 
@@ -73,11 +74,14 @@ BitAlternanteTx::EnviaPaquete()
 
   // Paquete a enviar 
   Ptr<Packet> m_paquete;
-  
+  // Num secuencia
+  uint8_t m_tx;  
+
   //Se transmiten los paquetes desde m_tx hasta el final de la ventana
   while (m_ventana.Credito()) {
     // Envío el paquete  
-    m_paquete = Create<Packet> (&m_ventana.Pendiente(), m_tamPqt + 1);
+    m_tx = (uint8_t) m_ventana.Pendiente();
+    m_paquete = Create<Packet> (&m_tx, m_tamPqt + 1);
     m_node->GetDevice(0)->Send(m_paquete, m_disp->GetAddress(), 0x0800);
 
     NS_LOG_DEBUG ("Transmitido paquete de " << m_paquete->GetSize () <<
