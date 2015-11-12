@@ -4,7 +4,6 @@
 #include <ns3/callback.h>
 #include <ns3/packet.h>
 #include "BitAlternante.h"
-#include "Ventana.h"
 
 using namespace ns3;
 
