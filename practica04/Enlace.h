@@ -72,6 +72,7 @@ private:
   // Objeto para gestion de ventana;
   Ventana        m_ventana;  
   //tamaño de la ventana de TRANSMISION
-  uint32_t m_tamVentana;
-
+  uint32_t       m_tamVentana;
+  // NumSeq de paquete recibido
+  uint8_t        m_rx;
 };

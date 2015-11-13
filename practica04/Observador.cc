@@ -23,7 +23,7 @@ Observador::PaqueteAsentido (Ptr<const Packet> paquete)
 {
   NS_LOG_FUNCTION (paquete);
   CabEnlace header;
-  paquete->RemoveHeader (header);
+  paquete->PeekHeader (header);
   if (header.GetTipo() == ACK) {
   	m_paquetes ++;
   }
