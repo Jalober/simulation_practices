@@ -4,7 +4,7 @@
 #include <ns3/point-to-point-helper.h>
 #include <ns3/data-rate.h>
 #include <ns3/error-model.h>
-#include "BitAlternante.h"
+#include "Enlace.h"
 #include "Observador.h"
 
 using namespace ns3;
@@ -35,21 +35,28 @@ main (int argc, char *argv[])
   // Creamos el escenario
   NetDeviceContainer dispositivos = escenario.Install (nodos);
 
-  Observador observador;
-  // Suscribimos la traza de paquetes correctamente asentidos.
-  dispositivos.Get (0)->TraceConnectWithoutContext ("MacRx", MakeCallback(&Observador::PaqueteAsentido, &observador));
-
-  // Una aplicación transmisora
-  BitAlternanteTx transmisor (dispositivos.Get (1), trtx, tamPaquete, tamVentana);
-  // Y una receptora
-  BitAlternanteRx receptor(dispositivos.Get (0), tamVentana);
+  Observador primerObservador;
+  // Suscribimos la traza de paquetes correctamente asentidos de la primera aplicacion.
+  dispositivos.Get (0)->TraceConnectWithoutContext ("MacRx", MakeCallback(&Observador::PaqueteAsentido, &primerObservador));
+  
+  Observador segundoObservador;
+  // Suscribimos la traza de paquetes correctamente asentidos de la segunda aplicacion
+  dispositivos.Get (1)->TraceConnectWithoutContext ("MacRx", MakeCallback(&Observador::PaqueteAsentido, &segundoObservador));
+  
+  // Primera aplicación 
+  Enlace primeraAplicacion (dispositivos.Get (1), trtx, tamPaquete, tamVentana);
+  // Segunda aplicación
+  Enlace segundaAplicacion (dispositivos.Get (0), trtx, tamPaquete, tamVentana);
+  
   // Añadimos cada aplicación a su nodo
-  nodos.Get (0)->AddApplication(&transmisor);
-  nodos.Get (1)->AddApplication(&receptor);
+  nodos.Get (0)->AddApplication(&primeraAplicacion);
+  nodos.Get (1)->AddApplication(&segundaAplicacion);
 
-  // Activamos el transmisor
-  transmisor.SetStartTime (Seconds (1.0));
-  transmisor.SetStopTime (Seconds (9.95));
+  // Activamos las aplicaciones
+  primeraAplicacion.SetStartTime (Seconds (1.0));
+  primeraAplicacion.SetStopTime (Seconds (9.95));
+  segundaAplicacion.SetStartTime (Seconds (1.0));
+  segundaAplicacion.SetStopTime (Seconds (9.95));
   
   Simulator::Run ();
   Simulator::Destroy ();
