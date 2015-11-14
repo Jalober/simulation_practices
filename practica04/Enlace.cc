@@ -48,8 +48,7 @@ Enlace::PaqueteRecibido(  Ptr<NetDevice>        receptor,
 
   if (tipo == ACK) {
   
-    NS_LOG_DEBUG ("    Recibido ACK en nodo " << m_node->GetId() 
-        << " con numSeq "<< (unsigned int) numSecuencia);
+    NS_LOG_INFO ("NODO " << m_node->GetId() << ": Recibido ACK con numSeq " << (unsigned int) numSecuencia);
 
     //Si numero de secuencia en ventana
     if (m_ventana.EnVentana((uint32_t) numSecuencia)) {
@@ -63,8 +62,7 @@ Enlace::PaqueteRecibido(  Ptr<NetDevice>        receptor,
 
   } else if (tipo == PAQUETE) {
 
-    NS_LOG_DEBUG ("    Recibido paquete en nodo " << m_node->GetId() << " de tipo "
-              << (unsigned int) tipo << " con numSeq"  << (unsigned int) numSecuencia);
+    NS_LOG_INFO ("NODO " << m_node->GetId() << ": Recibido paquete con numSeq "  << (unsigned int) numSecuencia);
   
     // Si el número de secuencia es correcto
     if (numSecuencia == m_rx) {
@@ -85,7 +83,7 @@ void
 Enlace::VenceTemporizador()
 {
   NS_LOG_FUNCTION_NOARGS ();
-  NS_LOG_DEBUG("¡¡¡TIMEOUT!!! Reenviando");
+  NS_LOG_DEBUG("NODO " << m_node->GetId() << ": VENCE TEMPORIZADOR");
   //Reenviamos todos los paquetes de la ventana
   m_ventana.Vacia();
   EnviaPaquete ();
@@ -113,17 +111,16 @@ Enlace::EnviaPaquete()
     paquete->AddHeader (header);    
     m_node->GetDevice(0)->Send(paquete, m_disp->GetAddress(), 0x0800);
 
-    NS_LOG_DEBUG ("Transmitido paquete de " << paquete->GetSize () <<
-                 " octetos en nodo " << m_node->GetId() <<
-                 " con numSeq " << (unsigned int) m_tx <<
+    NS_LOG_INFO ("NODO " << m_node->GetId() << ": Transmitido paquete de " << paquete->GetSize () <<
+                 " octetos con numSeq " << (unsigned int) m_tx <<
                  " en " << Simulator::Now());
     
     if (m_esperaACK != 0) {
       if (Simulator::IsExpired(m_temporizador))      
-        m_temporizador = Simulator::Schedule (m_esperaACK, &BitAlternanteTx::VenceTemporizador, this);
+        m_temporizador = Simulator::Schedule (m_esperaACK, &Enlace::VenceTemporizador, this);
     }
   }
-  NS_LOG_FUNCTION ("Salimos del bucle");  
+  NS_LOG_DEBUG ("NODO " << m_node->GetId() << ": LLENA LA VENTANA");
 }
 
 
@@ -136,12 +133,12 @@ Enlace::EnviaACK()
   CabEnlace header;
   header.SetData (1, m_rx);
   p->AddHeader (header);
-
-  NS_LOG_DEBUG ("  Transmitido ACK de " << p->GetSize () <<
-                " octetos en nodo " << m_node->GetId() <<
-                " con numSeq" << (unsigned int) m_rx <<
-                " en " << Simulator::Now());
   m_node->GetDevice(0)->Send(p, m_disp->GetAddress(), 0x0800);
+
+  NS_LOG_INFO ("NODO " << m_node->GetId() << ": Transmitido ACK de " << p->GetSize () <<
+                " octetos con numSeq " << (unsigned int) m_rx <<
+                " en " << Simulator::Now());
+
 }
 
 

@@ -1,6 +1,7 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 
 #include <ns3/core-module.h>
+#include <ns3/ppp-header.h>
 #include "Observador.h"
 #include "CabEnlace.h"
 
@@ -22,10 +23,21 @@ void
 Observador::PaqueteAsentido (Ptr<const Packet> paquete)
 {
   NS_LOG_FUNCTION (paquete);
+  Ptr<Packet> copia = paquete->Copy();
+ 
+  PppHeader pppHeader; 
   CabEnlace header;
-  paquete->PeekHeader (header);
-  if (header.GetTipo() == ACK) {
-  	m_paquetes ++;
+  copia->RemoveHeader (pppHeader);
+  copia->RemoveHeader (header);
+  
+  uint8_t tipo = header.GetTipo();
+  uint8_t numSecuencia = header.GetSecuencia();
+  
+  NS_LOG_FUNCTION ("Tipo de paquete detectado" << (unsigned int) tipo);
+  NS_LOG_FUNCTION ("Tamaño paquete" << (unsigned int) copia->GetSize());
+  NS_LOG_FUNCTION ("NumSeq" << (unsigned int) numSecuencia);
+  if (tipo == ACK) {
+    m_paquetes++;
   }
 }
 
@@ -33,7 +45,19 @@ Observador::PaqueteAsentido (Ptr<const Packet> paquete)
 uint32_t
 Observador::TotalPaquetes ()
 {
-  NS_LOG_FUNCTION_NOARGS ();
-
+  NS_LOG_FUNCTION ("Total paquetes: " << (unsigned int) m_paquetes);
   return m_paquetes;
+}
+
+//TODO
+DataRate Observador::GETCef () 
+{
+  DataRate result(0);
+  return result;
+}
+
+//TODO
+double Observador::GETRend () {
+  double result = 0;
+  return result;
 }

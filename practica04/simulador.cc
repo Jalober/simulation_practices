@@ -34,7 +34,10 @@ main (int argc, char *argv[])
   nodos.Create(2);
   // Creamos el escenario
   NetDeviceContainer dispositivos = escenario.Install (nodos);
-
+  
+  //Habilitamos la creacion de pcaps
+  escenario.EnablePcapAll("practica04");
+  
   Observador primerObservador;
   // Suscribimos la traza de paquetes correctamente asentidos de la primera aplicacion.
   dispositivos.Get (0)->TraceConnectWithoutContext ("MacRx", MakeCallback(&Observador::PaqueteAsentido, &primerObservador));
@@ -66,7 +69,7 @@ main (int argc, char *argv[])
   NS_LOG_DEBUG ("Rprop: " << rprop);
   NS_LOG_DEBUG ("RTT: " << Seconds(vtx.CalculateTxTime (tamPaquete + 6)) + 2 * rprop); //Enunciado modificado
   NS_LOG_DEBUG ("Temporizador: " << trtx);
-  NS_LOG_INFO  ("Total paquetes: " << observador.TotalPaquetes ());
-  
+  NS_LOG_INFO  ("Total paquetes primer nodo: " << primerObservador.TotalPaquetes ());
+  NS_LOG_INFO  ("Total paquetes segundo nodo: " << segundoObservador.TotalPaquetes());
   return 0;
 }
