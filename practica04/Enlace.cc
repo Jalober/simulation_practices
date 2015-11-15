@@ -15,7 +15,7 @@ Enlace::Enlace(                  Ptr<NetDevice> disp,
                                  uint32_t       tamPqt, 
                                  uint8_t        tamVentana) : m_ventana(tamVentana, (uint32_t) tamVentana * 2)
 {
-  NS_LOG_FUNCTION (disp << espera << tamPqt);
+  NS_LOG_FUNCTION (disp << espera << tamPqt << tamVentana);
 
   // Inicializamos las variables privadas
   m_disp          = disp;
@@ -23,6 +23,7 @@ Enlace::Enlace(                  Ptr<NetDevice> disp,
   m_tamPqt        = tamPqt;
   m_rx            = 0;
   m_tamVentana    = tamVentana;
+  m_primerEnvio   = true;
 }
 
 
@@ -34,9 +35,6 @@ Enlace::PaqueteRecibido(  Ptr<NetDevice>        receptor,
                           const Address &       hacia,
                           NetDevice::PacketType tipoPaquete)
 {
-  NS_LOG_FUNCTION (receptor << recibido->GetSize () <<
-                   std::hex << protocolo <<
-                   desde << hacia << tipoPaquete);
 
   //Obtenemos el paquete y almacenamos los valores de la cabecera
   Ptr<Packet> copia = recibido->Copy ();
@@ -54,6 +52,7 @@ Enlace::PaqueteRecibido(  Ptr<NetDevice>        receptor,
     if (m_ventana.EnVentana((uint32_t) numSecuencia)) {
       //Para temporizador
       Simulator::Cancel(m_temporizador);
+      NS_LOG_DEBUG("Se cancela temporizador");
       //Actualiza ventanaTx
       m_ventana.Asentida((uint32_t) numSecuencia);
       //Envia 
@@ -82,7 +81,6 @@ Enlace::PaqueteRecibido(  Ptr<NetDevice>        receptor,
 void
 Enlace::VenceTemporizador()
 {
-  NS_LOG_FUNCTION_NOARGS ();
   NS_LOG_DEBUG("NODO " << m_node->GetId() << ": VENCE TEMPORIZADOR");
   //Reenviamos todos los paquetes de la ventana
   m_ventana.Vacia();
@@ -93,15 +91,16 @@ Enlace::VenceTemporizador()
 void
 Enlace::EnviaPaquete()
 {
-  NS_LOG_FUNCTION_NOARGS ();
 
   // Paquete a enviar 
   Ptr<Packet> paquete;
   // Num secuencia
-  uint8_t m_tx;  
+  uint8_t  m_tx;  
+  uint32_t num_transmisiones = 0;
 
   //Se transmiten los paquetes desde m_tx hasta el final de la ventana
   while (m_ventana.Credito()) {
+    num_transmisiones++;
     
     // Envío el paquete  
     m_tx = (uint8_t) m_ventana.Pendiente();
@@ -116,19 +115,27 @@ Enlace::EnviaPaquete()
                  " en " << Simulator::Now());
     
     if (m_esperaACK != 0) {
-      if (Simulator::IsExpired(m_temporizador))      
+      if (Simulator::IsExpired(m_temporizador)) {     
+        NS_LOG_FUNCTION ("NODO 0: Programamos temporizador");
         m_temporizador = Simulator::Schedule (m_esperaACK, &Enlace::VenceTemporizador, this);
+      }
     }
   }
-  NS_LOG_DEBUG ("NODO " << m_node->GetId() << ": LLENA LA VENTANA");
+  if (num_transmisiones > 0) {
+     NS_LOG_DEBUG ("NODO " << m_node->GetId() << ": LLENA LA VENTANA");
+  }
+  if (num_transmisiones > 1 && !m_primerEnvio) {
+     NS_LOG_DEBUG ( "NODO " << m_node->GetId() << ": SE RECUPERA DE ERROR"); 
+  }
+  //Se indica que ya se ha pasado al menos una vez por esta funcion
+  m_primerEnvio = false;
 }
 
 
 void
 Enlace::EnviaACK()
 {
-  NS_LOG_FUNCTION_NOARGS ();
-  
+
   Ptr<Packet> p = Create<Packet> (0);
   CabEnlace header;
   header.SetData (1, m_rx);

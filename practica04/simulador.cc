@@ -18,38 +18,59 @@ main (int argc, char *argv[])
   Time::SetResolution (Time::US);
 
   // Parámetros de la simulación
-  Time     trtx       = Time("5ms");
-  uint32_t tamPaquete = 994;
-  Time     rprop      = Time("2ms");
+  Time     trtx       = Time("6ms");
+  uint32_t tamPaquete = uint32_t(121);
+  Time     rprop      = Time("200us");
   DataRate vtx        = DataRate("1000kbps");
-  uint8_t  tamVentana = 2;
+  uint8_t  tamVentana = 6;
+  double   errorRate  = double(0.005);
 
+  //Obtencion de parametros por linea de comandos
+  CommandLine cmd;
+  cmd.AddValue("window", "tamanio de la ventana de transmision", tamVentana);
+  cmd.AddValue("delay", "retardo de propagacion del enlace", rprop);
+  cmd.AddValue("rate", "capacidad de transmision en el canal", vtx);
+  cmd.AddValue("pktSize", "tamanio de la SDU del nivel de enlace", tamPaquete);
+  cmd.AddValue("wait", "tiempo de espera para la retransmision", trtx);  
+  cmd.AddValue("errorRate", "media de errores por paquete", errorRate);
+  cmd.Parse(argc, argv);
+  
+  // Definimos el modelo de errores
+  Ptr<ErrorModel> errorModel = CreateObject<RateErrorModel> ();
+  errorModel->SetAttribute("ErrorUnit", StringValue ("ERROR_UNIT_PACKET"));
+  errorModel->SetAttribute("ErrorRate", DoubleValue (errorRate));
+  
   // Configuramos el escenario:
   PointToPointHelper escenario;
   escenario.SetChannelAttribute ("Delay", TimeValue (rprop));
   escenario.SetDeviceAttribute ("DataRate", DataRateValue (vtx));
+  escenario.SetDeviceAttribute ("ReceiveErrorModel", PointerValue(errorModel));
   escenario.SetQueue ("ns3::DropTailQueue");
+ 
   // Creamos los nodos
-  NodeContainer      nodos;
+  NodeContainer nodos;
   nodos.Create(2);
+
   // Creamos el escenario
   NetDeviceContainer dispositivos = escenario.Install (nodos);
-  
-  //Habilitamos la creacion de pcaps
+ 
+  // Habilitamos la creacion de pcaps
   escenario.EnablePcapAll("practica04");
-  
+    
   Observador primerObservador;
   // Suscribimos la traza de paquetes correctamente asentidos de la primera aplicacion.
   dispositivos.Get (0)->TraceConnectWithoutContext ("MacRx", MakeCallback(&Observador::PaqueteAsentido, &primerObservador));
-  
+  dispositivos.Get (0)->TraceConnectWithoutContext ("PhyRxDrop", MakeCallback(&Observador::PaqueteErroneo, &primerObservador)); 
+ 
   Observador segundoObservador;
-  // Suscribimos la traza de paquetes correctamente asentidos de la segunda aplicacion
+  // Suscribimos la traza de paquetes correctamente asentidos de la segunda aplicacion.
   dispositivos.Get (1)->TraceConnectWithoutContext ("MacRx", MakeCallback(&Observador::PaqueteAsentido, &segundoObservador));
-  
+  dispositivos.Get (1)->TraceConnectWithoutContext ("PhyRxDrop", MakeCallback(&Observador::PaqueteErroneo, &segundoObservador));
+
   // Primera aplicación 
   Enlace primeraAplicacion (dispositivos.Get (1), trtx, tamPaquete, tamVentana);
   // Segunda aplicación
-  Enlace segundaAplicacion (dispositivos.Get (0), trtx, tamPaquete, tamVentana);
+  Enlace segundaAplicacion (dispositivos.Get (0), trtx, 0, tamVentana);
   
   // Añadimos cada aplicación a su nodo
   nodos.Get (0)->AddApplication(&primeraAplicacion);
@@ -68,8 +89,10 @@ main (int argc, char *argv[])
   NS_LOG_DEBUG ("Vtx: " << vtx);
   NS_LOG_DEBUG ("Rprop: " << rprop);
   NS_LOG_DEBUG ("RTT: " << Seconds(vtx.CalculateTxTime (tamPaquete + 6)) + 2 * rprop); //Enunciado modificado
-  NS_LOG_DEBUG ("Temporizador: " << trtx);
-  NS_LOG_INFO  ("Total paquetes primer nodo: " << primerObservador.TotalPaquetes ());
-  NS_LOG_INFO  ("Total paquetes segundo nodo: " << segundoObservador.TotalPaquetes());
+  NS_LOG_DEBUG ("Temporizador: " << trtx);  
+  NS_LOG_INFO  ("Total paquetes correctos en primer nodo: "  << primerObservador.TotalPaquetes ());
+  NS_LOG_INFO  ("Total paquetes erroneos en primer nodo: "   << primerObservador.TotalErroneos ());
+  NS_LOG_INFO  ("Total paquetes correctos en segundo nodo: " << segundoObservador.TotalPaquetes());
+  NS_LOG_INFO  ("Total paquetes erroneos en segundo nodo: "  << segundoObservador.TotalErroneos());
   return 0;
 }

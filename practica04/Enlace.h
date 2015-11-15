@@ -52,7 +52,9 @@ private:
   void StartApplication()
   {
     //Envio de los primeros paquetes    
-    EnviaPaquete();
+    if (m_tamPqt > 0) { 
+       EnviaPaquete();
+    }
   }
 
   // Método que se llama en el instante de final de la aplicación.
@@ -71,8 +73,10 @@ private:
   EventId        m_temporizador;
   // Objeto para gestion de ventana;
   Ventana        m_ventana;  
-  //tamaño de la ventana de TRANSMISION
+  // tamaño de la ventana de TRANSMISION
   uint32_t       m_tamVentana;
   // NumSeq de paquete recibido
   uint8_t        m_rx;
+  // Flag para indicar si es el primer envio
+  bool           m_primerEnvio;
 };

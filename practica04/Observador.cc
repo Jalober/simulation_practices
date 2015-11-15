@@ -16,6 +16,7 @@ Observador::Observador ()
   NS_LOG_FUNCTION_NOARGS ();
 
   m_paquetes = 0;
+  m_erroneos = 0;
 }
 
 
@@ -41,12 +42,25 @@ Observador::PaqueteAsentido (Ptr<const Packet> paquete)
   }
 }
 
+void
+Observador::PaqueteErroneo (Ptr<const Packet> paquete)
+{
+  NS_LOG_FUNCTION (paquete);
+  m_erroneos++;
+}
 
 uint32_t
 Observador::TotalPaquetes ()
 {
   NS_LOG_FUNCTION ("Total paquetes: " << (unsigned int) m_paquetes);
   return m_paquetes;
+}
+
+uint32_t
+Observador::TotalErroneos ()
+{
+  NS_LOG_FUNCTION ("Total Erroneos: " << (unsigned int) m_erroneos);
+  return m_erroneos;
 }
 
 //TODO
