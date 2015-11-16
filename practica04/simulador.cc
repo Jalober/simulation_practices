@@ -40,12 +40,13 @@ NS_LOG_COMPONENT_DEFINE ("Practica04");
   // Habilitamos la creacion de pcaps
   // escenario.EnablePcapAll("practica04");
     
-  Observador observador(vtx, Time("5s"), tamVentana);
+  Observador observador1(vtx, Time("5s"), tamVentana, tamPaquete);
+  //Observador observador2(vtx, Time("5s"), tamVentana, tamPaquete);
   // Suscribimos la traza de paquetes correctamente asentidos de la primera aplicacion.
-  dispositivos.Get (0)->TraceConnectWithoutContext ("MacRx", MakeCallback(&Observador::PaqueteAsentido, &observador));
-  dispositivos.Get (0)->TraceConnectWithoutContext ("PhyRxDrop", MakeCallback(&Observador::PaqueteErroneo, &observador)); 
-  dispositivos.Get (1)->TraceConnectWithoutContext ("MacRx", MakeCallback(&Observador::PaqueteAsentido, &observador));
-  dispositivos.Get (1)->TraceConnectWithoutContext ("PhyRxDrop", MakeCallback(&Observador::PaqueteErroneo, &observador));
+  dispositivos.Get (0)->TraceConnectWithoutContext ("MacRx", MakeCallback(&Observador::PaqueteAsentido, &observador1));
+  dispositivos.Get (0)->TraceConnectWithoutContext ("PhyRxDrop", MakeCallback(&Observador::PaqueteErroneo, &observador1)); 
+  //dispositivos.Get (1)->TraceConnectWithoutContext ("MacRx", MakeCallback(&Observador::PaqueteAsentido, &observador2));
+  //dispositivos.Get (1)->TraceConnectWithoutContext ("PhyRxDrop", MakeCallback(&Observador::PaqueteErroneo, &observador2));
 
   // Primera aplicación 
   Enlace primeraAplicacion (dispositivos.Get (1), trtx, tamPaquete, tamVentana);
@@ -71,15 +72,15 @@ NS_LOG_COMPONENT_DEFINE ("Practica04");
   NS_LOG_FUNCTION ("RTT: " << Seconds(vtx.CalculateTxTime (tamPaquete + 6)) + 2 * rprop); //Enunciado modificado
   NS_LOG_FUNCTION ("Temporizador" << trtx);
   
-  uint32_t totalPaquetes = observador.TotalPaquetes();
-  uint32_t totalErroneos = observador.TotalErroneos();
+  uint32_t totalPaquetes = observador1.TotalPaquetes();
+  uint32_t totalErroneos = observador1.TotalErroneos();
 
   NS_LOG_FUNCTION  ("Total paquetes correctos"  << totalPaquetes);
   NS_LOG_FUNCTION  ("Total paquetes erroneos"   << totalErroneos);
   
   //Calculo de estadisticos
-  DataRate cef  = observador.GETCef(); 
-  double   rend = observador.GETRend();  
+  DataRate cef  = observador1.GETCef(); 
+  double   rend = observador1.GETRend();  
   
   NS_LOG_INFO ("Cef: " << cef);
   NS_LOG_INFO ("Rend: " << rend);
