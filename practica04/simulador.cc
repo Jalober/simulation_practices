@@ -23,7 +23,7 @@ main (int argc, char *argv[])
   Time     rprop      = Time("200us");
   DataRate vtx        = DataRate("1000kbps");
   uint8_t  tamVentana = 6;
-  double   errorRate  = double(0.001);
+  double   errorRate  = double(0.01);
 
   //Obtencion de parametros por linea de comandos
   CommandLine cmd;
@@ -32,7 +32,6 @@ main (int argc, char *argv[])
   cmd.AddValue("rate", "capacidad de transmision en el canal", vtx);
   cmd.AddValue("pktSize", "tamanio de la SDU del nivel de enlace", tamPaquete);
   cmd.AddValue("wait", "tiempo de espera para la retransmision", trtx);  
-  cmd.AddValue("errorRate", "media de errores por paquete", errorRate);
   cmd.Parse(argc, argv);
   
   // Definimos el modelo de errores
@@ -75,9 +74,9 @@ main (int argc, char *argv[])
 
   // Activamos las aplicaciones
   primeraAplicacion.SetStartTime (Seconds (1.0));
-  primeraAplicacion.SetStopTime (Seconds (9.95));
+  primeraAplicacion.SetStopTime (Seconds (6.0));
   segundaAplicacion.SetStartTime (Seconds (1.0));
-  segundaAplicacion.SetStopTime (Seconds (9.95));
+  segundaAplicacion.SetStopTime (Seconds (6.0));
   
   Simulator::Run ();
   Simulator::Destroy ();
@@ -86,12 +85,19 @@ main (int argc, char *argv[])
   NS_LOG_DEBUG ("Vtx: " << vtx);
   NS_LOG_DEBUG ("Rprop: " << rprop);
   NS_LOG_DEBUG ("RTT: " << Seconds(vtx.CalculateTxTime (tamPaquete + 6)) + 2 * rprop); //Enunciado modificado
-  NS_LOG_DEBUG ("Temporizador" << trtx);  
-  NS_LOG_FUNCTION  ("Total paquetes correctos"  << observador.TotalPaquetes ());
-  NS_LOG_FUNCTION  ("Total paquetes erroneos"   << observador.TotalErroneos ());
+  NS_LOG_DEBUG ("Temporizador" << trtx);
   
-  NS_LOG_INFO ("Cef: " << observador.GETCef());
-  NS_LOG_INFO ("Rend: " << observador.GETRend());
+  uint32_t totalPaquetes = observador.TotalPaquetes();
+  uint32_t totalErroneos = observador.TotalErroneos();
 
+  NS_LOG_FUNCTION  ("Total paquetes correctos"  << totalPaquetes);
+  NS_LOG_FUNCTION  ("Total paquetes erroneos"   << totalErroneos);
+
+  DataRate cef  = observador.GETCef(); 
+  double   rend = observador.GETRend();  
+
+  NS_LOG_INFO ("Cef: " << cef);
+  NS_LOG_INFO ("Rend: " << rend);
+  
   return 0;
 }

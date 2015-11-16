@@ -26,7 +26,6 @@ Observador::Observador (DataRate vtx, Time tOcupacion, uint32_t tamVentana)
 void
 Observador::PaqueteAsentido (Ptr<const Packet> paquete)
 {
-  NS_LOG_FUNCTION (paquete);
   Ptr<Packet> copia = paquete->Copy();
   
   PppHeader pppHeader; 
@@ -44,15 +43,15 @@ Observador::PaqueteAsentido (Ptr<const Packet> paquete)
     m_paquetes++;
   } else if (tipo == PAQUETE) {
     m_bits_utiles += copia->GetSize() * 8;
+    NS_LOG_INFO ("Sumados " << copia->GetSize() * 8 << "bits. Ahora hay " << m_bits_utiles << "bits");
   }
 }
 
 void
 Observador::PaqueteErroneo (Ptr<const Packet> paquete)
 {
-  NS_LOG_FUNCTION (paquete);  
   Ptr<Packet> copia = paquete->Copy();
-  
+ 
   uint32_t tamPaquete;
   
   m_erroneos++; 
@@ -66,10 +65,12 @@ Observador::PaqueteErroneo (Ptr<const Packet> paquete)
 
   if (tipo == PAQUETE) {
      tamPaquete = copia->GetSize();
-     if (m_bits_utiles >= (8 * m_tamVentana * tamPaquete))
+     if (m_bits_utiles >= (8 * m_tamVentana * tamPaquete)) {
         m_bits_utiles -= (8 * m_tamVentana * tamPaquete);
-     else
+        NS_LOG_INFO ("Restados " << 8 * m_tamVentana * tamPaquete << "bits. Ahora hay " << m_bits_utiles << "bits");
+     } else {
          m_bits_utiles = 0;
+     }
   }  
 
   
@@ -91,11 +92,13 @@ Observador::TotalErroneos ()
 
 DataRate Observador::GETCef () 
 {
-  double result = m_bits_utiles / m_tOcupacion.GetSeconds();
-  return DataRate(result);
+  DataRate result = DataRate((m_bits_utiles / 2) / m_tOcupacion.GetSeconds());
+  NS_LOG_DEBUG ("Cef: " << result);
+  return result;
 }
 
 double Observador::GETRend () {
-  double result = (m_bits_utiles / m_vtx.GetBitRate()) / m_tOcupacion.GetSeconds();
+  double result = (((double)m_bits_utiles / 2) / (double) m_vtx.GetBitRate()) / (double)m_tOcupacion.GetSeconds();
+  NS_LOG_DEBUG ("Rend: " << result * 100);
   return result;
 }
