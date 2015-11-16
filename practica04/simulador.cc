@@ -81,9 +81,17 @@ NS_LOG_COMPONENT_DEFINE ("Practica04");
   
   NS_LOG_INFO ("Cef: " << cef);
   NS_LOG_INFO ("Rend: " << rend);
+<<<<<<< HEAD
 
 
   return rend;
+=======
+<<<<<<< HEAD
+
+  return rend;
+=======
+>>>>>>> e645b01f2f7f4f9a9d3660a687bedac056a0ace5
+>>>>>>> 9bef24c1f21187c7b050a6d8b5cabed823db1d65
 }
 
 int
@@ -91,6 +99,10 @@ main (int argc, char *argv[])
 {
   Time::SetResolution (Time::US);
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 9bef24c1f21187c7b050a6d8b5cabed823db1d65
   uint32_t seed = 1; //Semilla a utilizar
 
   // Parámetros de la simulación
@@ -133,6 +145,29 @@ main (int argc, char *argv[])
     NS_LOG_INFO ("Para errorRate = " << errorRate << " --> "
        << rendimientoMedio - z << " < rendimiento < " << rendimientoMedio + <);  
   } 
+<<<<<<< HEAD
+=======
+=======
+  // Parámetros de la simulación
+  Time     trtx       = Time("6ms");
+  uint32_t tamPaquete = uint32_t(121);
+  Time     rprop      = Time("200us");
+  DataRate vtx        = DataRate("1000kbps");
+  uint8_t  tamVentana = 6;
+  double   errorRate  = double(0.01);
+
+  //Obtencion de parametros por linea de comandos
+  CommandLine cmd;
+  cmd.AddValue("window", "tamanio de la ventana de transmision", tamVentana);
+  cmd.AddValue("delay", "retardo de propagacion del enlace", rprop);
+  cmd.AddValue("rate", "capacidad de transmision en el canal", vtx);
+  cmd.AddValue("pktSize", "tamanio de la SDU del nivel de enlace", tamPaquete);
+  cmd.AddValue("wait", "tiempo de espera para la retransmision", trtx);  
+  cmd.Parse(argc, argv);
+
+  simulacion (trtx, tamPaquete, rprop, vtx, tamVentana, errorRate);
+>>>>>>> e645b01f2f7f4f9a9d3660a687bedac056a0ace5
+>>>>>>> 9bef24c1f21187c7b050a6d8b5cabed823db1d65
   
   return 0;
 }
