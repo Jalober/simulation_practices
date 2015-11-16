@@ -52,7 +52,7 @@ Enlace::PaqueteRecibido(  Ptr<NetDevice>        receptor,
     if (m_ventana.EnVentana((uint32_t) numSecuencia)) {
       //Para temporizador
       Simulator::Cancel(m_temporizador);
-      NS_LOG_DEBUG("Se cancela temporizador");
+      NS_LOG_FUNCTION("Se cancela temporizador");
       //Actualiza ventanaTx
       m_ventana.Asentida((uint32_t) numSecuencia);
       //Envia 

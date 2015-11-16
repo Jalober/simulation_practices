@@ -11,21 +11,24 @@
 NS_LOG_COMPONENT_DEFINE ("Observador");
 
 
-Observador::Observador ()
+Observador::Observador (DataRate vtx, Time tOcupacion, uint32_t tamVentana)
 {
   NS_LOG_FUNCTION_NOARGS ();
 
-  m_paquetes = 0;
-  m_erroneos = 0;
+  m_paquetes     = 0;
+  m_erroneos     = 0;
+  m_bits_utiles  = 0;
+  m_vtx          = vtx;
+  m_tOcupacion   = tOcupacion; 
+  m_tamVentana   = tamVentana;
 }
-
 
 void
 Observador::PaqueteAsentido (Ptr<const Packet> paquete)
 {
   NS_LOG_FUNCTION (paquete);
   Ptr<Packet> copia = paquete->Copy();
- 
+  
   PppHeader pppHeader; 
   CabEnlace header;
   copia->RemoveHeader (pppHeader);
@@ -39,14 +42,37 @@ Observador::PaqueteAsentido (Ptr<const Packet> paquete)
   NS_LOG_FUNCTION ("NumSeq" << (unsigned int) numSecuencia);
   if (tipo == ACK) {
     m_paquetes++;
+  } else if (tipo == PAQUETE) {
+    m_bits_utiles += copia->GetSize() * 8;
   }
 }
 
 void
 Observador::PaqueteErroneo (Ptr<const Packet> paquete)
 {
-  NS_LOG_FUNCTION (paquete);
-  m_erroneos++;
+  NS_LOG_FUNCTION (paquete);  
+  Ptr<Packet> copia = paquete->Copy();
+  
+  uint32_t tamPaquete;
+  
+  m_erroneos++; 
+
+  PppHeader pppHeader;
+  CabEnlace header;
+  copia->RemoveHeader (pppHeader);
+  copia->RemoveHeader (header);
+
+  uint8_t tipo = header.GetTipo();
+
+  if (tipo == PAQUETE) {
+     tamPaquete = copia->GetSize();
+     if (m_bits_utiles >= (8 * m_tamVentana * tamPaquete))
+        m_bits_utiles -= (8 * m_tamVentana * tamPaquete);
+     else
+         m_bits_utiles = 0;
+  }  
+
+  
 }
 
 uint32_t
@@ -63,15 +89,13 @@ Observador::TotalErroneos ()
   return m_erroneos;
 }
 
-//TODO
 DataRate Observador::GETCef () 
 {
-  DataRate result(0);
-  return result;
+  double result = m_bits_utiles / m_tOcupacion.GetSeconds();
+  return DataRate(result);
 }
 
-//TODO
 double Observador::GETRend () {
-  double result = 0;
+  double result = (m_bits_utiles / m_vtx.GetBitRate()) / m_tOcupacion.GetSeconds();
   return result;
 }

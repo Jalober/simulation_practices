@@ -9,15 +9,19 @@ using namespace ns3;
 class Observador
 {
 public:
-  Observador  ();
+  Observador  (DataRate vtx, Time tOcupacion, uint32_t tamVentana);
   void     PaqueteAsentido (Ptr<const Packet> paquete);
   void     PaqueteErroneo  (Ptr<const Packet> paquete);
   uint32_t TotalPaquetes   ();
   uint32_t TotalErroneos   ();
-  DataRate GETCef ();
-  double GETRend ();
+  DataRate GETCef          ();
+  double   GETRend         ();
 
 private:
   uint64_t m_paquetes;
   uint64_t m_erroneos;
+  uint64_t m_bits_utiles;
+  DataRate m_vtx;
+  Time     m_tOcupacion;
+  uint32_t m_tamVentana;
 };
