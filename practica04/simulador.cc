@@ -14,11 +14,8 @@ using namespace ns3;
 NS_LOG_COMPONENT_DEFINE ("Practica04");
 
 
-double simulacion (Time trtx, uint32_t tamPaquete, Time rprop, DataRate vtx, uint8_t tamVentana, double errorRate) 
-{  
+  double simulacion (Time trtx, uint32_t tamPaquete, Time rprop, DataRate vtx, uint8_t tamVentana, double errorRate) 
   
-  
-
   // Definimos el modelo de errores
   Ptr<ErrorModel> errorModel = CreateObject<RateErrorModel> ();
   errorModel->SetAttribute("ErrorUnit", StringValue ("ERROR_UNIT_PACKET"));
@@ -84,6 +81,7 @@ double simulacion (Time trtx, uint32_t tamPaquete, Time rprop, DataRate vtx, uin
   
   NS_LOG_INFO ("Cef: " << cef);
   NS_LOG_INFO ("Rend: " << rend);
+
 
   return rend;
 }
