@@ -133,7 +133,11 @@ main (int argc, char *argv[])
     NS_LOG_INFO ("Para errorRate = " << errorRate << " --> "
        << rendimientoMedio - z << " < rendimiento < " << rendimientoMedio + <);  
   } 
-
+  
+  std::ofstream plotFile ("practica04.plt");
+  plot.GenerateOutput (plotFile);
+  plotFile << "pause -1" << std::endl;
+  plotFile.close ();
   
   return 0;
 }
