@@ -7,6 +7,8 @@
 #include "ns3/internet-module.h"
 #include "ns3/applications-module.h"
 
+#include "Observador.h"
+
 
 using namespace ns3;
 
@@ -65,9 +67,17 @@ main (int argc, char *argv[])
     echoClient.SetAttribute ("Interval", TimeValue (intervalo));
     echoClient.SetAttribute ("PacketSize", UintegerValue (tamPaquete));
 	NodeContainer clientes;
+    std::Vector<Observador> observadores;
+
     for (uint32_t i = 0; i < nCsma - 1; i++)
     {
     	clientes.Add (csmaNodes.Get (i));
+        //Añadimos un observador por cliente
+        observadores.push_back(Observador(i));
+        
+        //Subscripcion de trazas
+        csmaDevices.Get(i)->TraceConnectWithoutContext ("MacTx", MakeCallback(&Observador::PaqueteParaEnviar, &observadores[i])); 
+        csmaDevices.Get(i)->TraceConnectWithoutContext ("MacTxBackoff", MakeCallback(&Observador::PaqueteEnBackoff, &observadores[i]));
     }
     ApplicationContainer clientApps = echoClient.Install (clientes);
     clientApps.Start (Seconds (2.0));
@@ -80,6 +90,10 @@ main (int argc, char *argv[])
 
     Simulator::Run ();
     Simulator::Destroy ();
+
+    for (uint32_t i = 0; i < nCsma - 1; i++) {
+        NS_LOG_INFO ("Media intentos observador " << i << ": " observadores[i].GetMediaNumIntentos());
+    }
 
     return 0;
 }

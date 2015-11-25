@@ -6,16 +6,18 @@
 using namespace ns3;
 
 
-class Observador
-{
+class Observador {
+
 public:
-  Observador  ();
-  
+  Observador (uint32_t nodoId);
+  void PaqueteParaEnviar (Ptr<const Packet> paquete);
+  void PaqueteEnBackoff (Ptr<const Packet> paquete);
+  void PaqueteRecibidoParaEntregar (Ptr<const Packet> paquete);
+  double GetMediaNumIntentos ();
  
 private:
   uint32_t m_nodoId;
-  m_paquetesParaEnviar;
-  m_paquetesEnBackoff;
-
+  uint32_t m_paquetesParaEnviar;
+  uint32_t m_paquetesEnBackoff;
 
 };

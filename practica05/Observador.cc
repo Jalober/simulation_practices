@@ -15,14 +15,24 @@ Observador::Observador (uint32_t nodoId)
   m_paquetesEnBackoff = 0;
 }
 
+void
 Observador::PaqueteParaEnviar (Ptr<const Packet> paquete) {
   m_paquetesParaEnviar++;
 }
 
+void
 Observador::PaqueteEnBackoff (Ptr<const Packet> paquete) {
   m_paquetesEnBackoff++;
 }
 
+void
+Observador::PaqueteRecibidoParaEntregar (Ptr<const Packet> paquete) {
+  
+}
 
+double
+Observador::GetMediaNumIntentos () {
+	return (double(m_paquetesParaEnviar) + double(m_paquetesEnBackoff)) / double (m_paquetesParaEnviar);
+}
 
 
