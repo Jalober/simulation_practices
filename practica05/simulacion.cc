@@ -67,19 +67,22 @@ main (int argc, char *argv[])
     echoClient.SetAttribute ("Interval", TimeValue (intervalo));
     echoClient.SetAttribute ("PacketSize", UintegerValue (tamPaquete));
 	NodeContainer clientes;
-    std::Vector<Observador> observadores;
+    std::vector<Observador> observadores;
 
     for (uint32_t i = 0; i < nCsma - 1; i++)
     {
     	clientes.Add (csmaNodes.Get (i));
         //Añadimos un observador por cliente
         observadores.push_back(Observador(i));
-        
+        NS_LOG_FUNCTION("Añadido observador a vector observadores");
         //Subscripcion de trazas
         csmaDevices.Get(i)->TraceConnectWithoutContext ("MacTx", MakeCallback(&Observador::PaqueteParaEnviar, &observadores[i])); 
         csmaDevices.Get(i)->TraceConnectWithoutContext ("MacTxBackoff", MakeCallback(&Observador::PaqueteEnBackoff, &observadores[i]));
     }
+    NS_LOG_FUNCTION ("Fin bucle de creacion de observadores");
+
     ApplicationContainer clientApps = echoClient.Install (clientes);
+    NS_LOG_FUNCTION ("Instalacion de clientes de echo realizada");
     clientApps.Start (Seconds (2.0));
     clientApps.Stop (Seconds (10.0));
 
@@ -87,12 +90,14 @@ main (int argc, char *argv[])
     Ipv4GlobalRoutingHelper::PopulateRoutingTables ();
 
     csma.EnablePcap ("practica05", csmaDevices.Get (nCsma - 1), true);
-
+    
+    NS_LOG_FUNCTION ("Va a comenzar la simulacion");
     Simulator::Run ();
     Simulator::Destroy ();
+    NS_LOG_FUNCTION ("Finalizada simulacion");
 
     for (uint32_t i = 0; i < nCsma - 1; i++) {
-        NS_LOG_INFO ("Media intentos observador " << i << ": " observadores[i].GetMediaNumIntentos());
+        NS_LOG_INFO ("Media intentos observador " << i << ": " << observadores[i].GetMediaNumIntentos());
     }
 
     return 0;
