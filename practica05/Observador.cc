@@ -17,22 +17,25 @@ Observador::Observador (uint32_t nodoId)
 
 void
 Observador::PaqueteParaEnviar (Ptr<const Packet> paquete) {
+  NS_LOG_FUNCTION_NOARGS ();
   m_paquetesParaEnviar++;
 }
 
 void
 Observador::PaqueteEnBackoff (Ptr<const Packet> paquete) {
+  NS_LOG_FUNCTION_NOARGS ();
   m_paquetesEnBackoff++;
 }
 
 void
 Observador::PaqueteRecibidoParaEntregar (Ptr<const Packet> paquete) {
-  
+  NS_LOG_FUNCTION_NOARGS ();
 }
 
 double
 Observador::GetMediaNumIntentos () {
-	return (double(m_paquetesParaEnviar) + double(m_paquetesEnBackoff)) / double (m_paquetesParaEnviar);
+  NS_LOG_FUNCTION_NOARGS ();
+  return (double(m_paquetesParaEnviar) + double(m_paquetesEnBackoff)) / double (m_paquetesParaEnviar);
 }
 
 
