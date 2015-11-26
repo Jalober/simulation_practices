@@ -7,35 +7,31 @@
 NS_LOG_COMPONENT_DEFINE ("Observador");
 
 //Constructor de observador
-Observador::Observador (uint32_t nodoId)
+Observador::Observador ()
 {
-  NS_LOG_FUNCTION_NOARGS ();
-  m_nodoId = nodoId;
-  m_paquetesParaEnviar = 0;
-  m_paquetesEnBackoff = 0;
+  m_numeroIntentos = 0;
 }
-
 void
 Observador::PaqueteParaEnviar (Ptr<const Packet> paquete) {
-  NS_LOG_FUNCTION_NOARGS ();
-  m_paquetesParaEnviar++;
+  m_numeroIntentos++;
+  m_acum_numeroIntentos.Update(m_numeroIntentos);
+  m_numeroIntentos = 0;
 }
 
 void
 Observador::PaqueteEnBackoff (Ptr<const Packet> paquete) {
-  NS_LOG_FUNCTION_NOARGS ();
-  m_paquetesEnBackoff++;
+  m_numeroIntentos++;
 }
 
 void
 Observador::PaqueteRecibidoParaEntregar (Ptr<const Packet> paquete) {
-  NS_LOG_FUNCTION_NOARGS ();
+
 }
+
 
 double
 Observador::GetMediaNumIntentos () {
-  NS_LOG_FUNCTION_NOARGS ();
-  return (double(m_paquetesParaEnviar) + double(m_paquetesEnBackoff)) / double (m_paquetesParaEnviar);
+  return m_acum_numeroIntentos.Mean();  
 }
 
 
