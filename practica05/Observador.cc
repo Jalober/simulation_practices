@@ -25,7 +25,7 @@ Observador::PaqueteEnBackoff (Ptr<const Packet> paquete) {
 
 void
 Observador::PaqueteRecibidoParaEntregar (Ptr<const Packet> paquete) {
-
+  
 }
 
 

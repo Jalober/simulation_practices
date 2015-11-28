@@ -20,26 +20,26 @@ NS_LOG_COMPONENT_DEFINE ("practica05");
 int
 main (int argc, char *argv[])
 {
-	GlobalValue::Bind("ChecksumEnabled", BooleanValue(true));
-	Time::SetResolution (Time::US);
+    GlobalValue::Bind("ChecksumEnabled", BooleanValue(true));
+    Time::SetResolution (Time::US);
 
     //Parametros de simulacion
-	uint32_t nCsma       = 10;
+    uint32_t nCsma       = 10;
     Time     retardoProp = Time ("6560ns");
     DataRate capacidad   = DataRate ("100Mbps");
     uint32_t tamPaquete  = 1024;
     Time     intervalo   = Time ("1s");
 
-	CommandLine cmd;
-	cmd.AddValue ("nCsma", "Número de nodos de la red local", nCsma);
+    CommandLine cmd;
+    cmd.AddValue ("nCsma", "Número de nodos de la red local", nCsma);
     cmd.AddValue ("retardoProp", "retardo de propagación en el bus", retardoProp);
     cmd.AddValue ("capacidad", "capacidad del bus", capacidad);
     cmd.AddValue ("tamPaquete", "tamaño de las SDU de aplicación", tamPaquete);
     cmd.AddValue ("intervalo", "tiempo entre dos paquetes consecutivos enviados por el mismo cliente", intervalo);
-	cmd.Parse (argc,argv);
+    cmd.Parse (argc,argv);
 
-	NodeContainer csmaNodes;
-	csmaNodes.Create (nCsma);
+    NodeContainer csmaNodes;
+    csmaNodes.Create (nCsma);
 
     CsmaHelper csma;
     csma.SetChannelAttribute ("DataRate", DataRateValue (capacidad));
@@ -47,7 +47,7 @@ main (int argc, char *argv[])
 
     NetDeviceContainer csmaDevices;
     csmaDevices = csma.Install (csmaNodes);
-	// Instalamos la pila TCP/IP en todos los nodos
+    // Instalamos la pila TCP/IP en todos los nodos
     InternetStackHelper stack;
     stack.Install (csmaNodes);
     // Y les asignamos direcciones
@@ -66,7 +66,7 @@ main (int argc, char *argv[])
     echoClient.SetAttribute ("MaxPackets", UintegerValue (10000));
     echoClient.SetAttribute ("Interval", TimeValue (intervalo));
     echoClient.SetAttribute ("PacketSize", UintegerValue (tamPaquete));
-	NodeContainer clientes;
+    NodeContainer clientes;
 
     for (uint32_t i = 0; i < nCsma - 1; i++)
     {
@@ -87,7 +87,7 @@ main (int argc, char *argv[])
     
     Observador observadores[nCsma]; 
     for (uint32_t i = 0; i < nCsma -1; i++) {
-        csmaDevices.Get(i)->TraceConnectWithoutContext ("MacTx", MakeCallback(&Observador::PaqueteParaEnviar, &observadores[i]));
+        csmaDevices.Get(i)->TraceConnectWithoutContext ("PhyTxEnd", MakeCallback(&Observador::PaqueteParaEnviar, &observadores[i]));
         csmaDevices.Get(i)->TraceConnectWithoutContext ("MacTxBackoff", MakeCallback(&Observador::PaqueteEnBackoff, &observadores[i]));
     }
  
