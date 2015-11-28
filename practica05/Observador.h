@@ -5,17 +5,22 @@
 
 using namespace ns3;
 
-
 class Observador {
 
 public:
   Observador ();
-  void PaqueteParaEnviar (Ptr<const Packet> paquete);
+  void PaqueteEnviado (Ptr<const Packet> paquete);
   void PaqueteEnBackoff (Ptr<const Packet> paquete);
+  void PaquetePerdido (Ptr<const Packet> paquete);
+  void PaqueteParaEnviar (Ptr<const Packet> paquete);
   void PaqueteRecibidoParaEntregar (Ptr<const Packet> paquete);
   double GetMediaNumIntentos ();
+  double GetMediaTiempoEco ();
  
 private:
   Average<uint32_t> m_acum_numeroIntentos;
-  uint32_t  m_numeroIntentos;
+  Average<double>   m_acum_tEco;
+  uint32_t          m_numeroIntentos;
+  double            m_tinicial;
+  double            m_tfinal; 
 };

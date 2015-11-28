@@ -14,9 +14,6 @@ using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("practica05");
 
-
-
-
 int
 main (int argc, char *argv[])
 {
@@ -87,8 +84,15 @@ main (int argc, char *argv[])
     
     Observador observadores[nCsma]; 
     for (uint32_t i = 0; i < nCsma -1; i++) {
-        csmaDevices.Get(i)->TraceConnectWithoutContext ("PhyTxEnd", MakeCallback(&Observador::PaqueteParaEnviar, &observadores[i]));
+        csmaDevices.Get(i)->TraceConnectWithoutContext ("PhyTxEnd", MakeCallback(&Observador::PaqueteEnviado, &observadores[i]));
+        csmaDevices.Get(i)->TraceConnectWithoutContext ("MacTxDrop", MakeCallback(&Observador::PaquetePerdido, &observadores[i]));
         csmaDevices.Get(i)->TraceConnectWithoutContext ("MacTxBackoff", MakeCallback(&Observador::PaqueteEnBackoff, &observadores[i]));
+        csmaDevices.Get(i)->TraceConnectWithoutContext ("MacTx", MakeCallback(&Observador::PaqueteParaEnviar, &observadores[i]));
+        csmaDevices.Get(i)->TraceConnectWithoutContext ("MacRx", MakeCallback(&Observador::PaqueteRecibidoParaEntregar, &observadores[i])); 
+    
+        Ptr<CsmaNetDevice> csma_device =  csmaDevices.Get (i)->GetObject<CsmaNetDevice> ();
+        csma_device -> SetBackoffParams (Time ("1us"), 10, 1000, 5, 8);
+
     }
  
     NS_LOG_FUNCTION ("Va a comenzar la simulacion");
@@ -98,6 +102,9 @@ main (int argc, char *argv[])
 
     for (uint32_t i = 0; i < nCsma - 1; i++) {
         NS_LOG_INFO ("Media intentos observador " << i << ": " << observadores[i].GetMediaNumIntentos());
+        NS_LOG_INFO ("Tiempo medio observador " << i << ": " << Time(observadores[i].GetMediaTiempoEco ())); 
+   
+        
     }
 
     return 0;
