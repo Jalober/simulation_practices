@@ -66,7 +66,8 @@ Enlace::PaqueteRecibido(  Ptr<NetDevice>        receptor,
     // Si el número de secuencia es correcto
     if (numSecuencia == m_rx) {
       // Si es correcto, incrementamos el numero de secuencia
-      m_rx = ++m_rx % (2 * m_tamVentana);      
+      m_rx++;
+      m_rx = m_rx % (2 * m_tamVentana);      
     }
     // Transmito en cualquier caso un ACK
     EnviaACK();

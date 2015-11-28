@@ -6,6 +6,8 @@
 #include <ns3/error-model.h>
 #include "Enlace.h"
 #include "Observador.h"
+#include <ns3/gnuplot.h>
+#include <ns3/average.h>
 
 #define T_STUDENT_VALUE 1.8331
 
@@ -15,7 +17,7 @@ NS_LOG_COMPONENT_DEFINE ("Practica04");
 
 
   double simulacion (Time trtx, uint32_t tamPaquete, Time rprop, DataRate vtx, uint8_t tamVentana, double errorRate) 
-  
+  {
   // Definimos el modelo de errores
   Ptr<ErrorModel> errorModel = CreateObject<RateErrorModel> ();
   errorModel->SetAttribute("ErrorUnit", StringValue ("ERROR_UNIT_PACKET"));
@@ -38,13 +40,12 @@ NS_LOG_COMPONENT_DEFINE ("Practica04");
   // Habilitamos la creacion de pcaps
   // escenario.EnablePcapAll("practica04");
     
-  Observador observador1(vtx, Time("5s"), tamVentana, tamPaquete);
-  //Observador observador2(vtx, Time("5s"), tamVentana, tamPaquete);
+  Observador observador(vtx, Time("5s"), tamVentana);
   // Suscribimos la traza de paquetes correctamente asentidos de la primera aplicacion.
-  dispositivos.Get (0)->TraceConnectWithoutContext ("MacRx", MakeCallback(&Observador::PaqueteAsentido, &observador1));
-  dispositivos.Get (0)->TraceConnectWithoutContext ("PhyRxDrop", MakeCallback(&Observador::PaqueteErroneo, &observador1)); 
-  //dispositivos.Get (1)->TraceConnectWithoutContext ("MacRx", MakeCallback(&Observador::PaqueteAsentido, &observador2));
-  //dispositivos.Get (1)->TraceConnectWithoutContext ("PhyRxDrop", MakeCallback(&Observador::PaqueteErroneo, &observador2));
+  dispositivos.Get (0)->TraceConnectWithoutContext ("MacRx", MakeCallback(&Observador::PaqueteAsentido, &observador));
+  dispositivos.Get (0)->TraceConnectWithoutContext ("PhyRxDrop", MakeCallback(&Observador::PaqueteErroneo, &observador)); 
+  dispositivos.Get (1)->TraceConnectWithoutContext ("MacRx", MakeCallback(&Observador::PaqueteAsentido, &observador));
+  dispositivos.Get (1)->TraceConnectWithoutContext ("PhyRxDrop", MakeCallback(&Observador::PaqueteErroneo, &observador));
 
   // Primera aplicación 
   Enlace primeraAplicacion (dispositivos.Get (1), trtx, tamPaquete, tamVentana);
@@ -64,21 +65,21 @@ NS_LOG_COMPONENT_DEFINE ("Practica04");
   Simulator::Run ();
   Simulator::Destroy ();
 
-  NS_LOG_DEBUG ("TamPaquete: " << tamPaquete + 6);
-  NS_LOG_DEBUG ("Vtx: " << vtx);
-  NS_LOG_DEBUG ("Rprop: " << rprop);
-  NS_LOG_DEBUG ("RTT: " << Seconds(vtx.CalculateTxTime (tamPaquete + 6)) + 2 * rprop); //Enunciado modificado
-  NS_LOG_DEBUG ("Temporizador" << trtx);
+  NS_LOG_FUNCTION ("TamPaquete: " << tamPaquete + 6);
+  NS_LOG_FUNCTION ("Vtx: " << vtx);
+  NS_LOG_FUNCTION ("Rprop: " << rprop);
+  NS_LOG_FUNCTION ("RTT: " << Seconds(vtx.CalculateTxTime (tamPaquete + 6)) + 2 * rprop); //Enunciado modificado
+  NS_LOG_FUNCTION ("Temporizador" << trtx);
   
-  uint32_t totalPaquetes = observador1.TotalPaquetes();
-  uint32_t totalErroneos = observador1.TotalErroneos();
+  uint32_t totalPaquetes = observador.TotalPaquetes();
+  uint32_t totalErroneos = observador.TotalErroneos();
 
   NS_LOG_FUNCTION  ("Total paquetes correctos"  << totalPaquetes);
   NS_LOG_FUNCTION  ("Total paquetes erroneos"   << totalErroneos);
   
   //Calculo de estadisticos
-  DataRate cef  = observador1.GETCef(); 
-  double   rend = observador1.GETRend();  
+  DataRate cef  = observador.GETCef(); 
+  double   rend = observador.GETRend();  
   
   NS_LOG_INFO ("Cef: " << cef);
   NS_LOG_INFO ("Rend: " << rend);
@@ -111,9 +112,8 @@ main (int argc, char *argv[])
   cmd.Parse (argc, argv);
 
   Gnuplot plot;
-  std::ostringstream rotulo;
   plot.SetTitle ("Rendimiento en funcion de la probabilidad de error de paquete");
-  plot.SetLegend ("perror", "rend");+
+  plot.SetLegend ("perror", "rend");
   
   Gnuplot2dDataset dataset;
   dataset.SetStyle (Gnuplot2dDataset::LINES_POINTS);
@@ -129,11 +129,11 @@ main (int argc, char *argv[])
     }
     double rendimientoMedio = rendimientos.Mean();
     double z = T_STUDENT_VALUE * std::sqrt (rendimientos.Var () / 10);
-    rendMedio.Add (errorRate, rendimientoMedio, 2 * z);    
-    NS_LOG_INFO ("Para errorRate = " << errorRate << " --> "
-       << rendimientoMedio - z << " < rendimiento < " << rendimientoMedio + <);  
+    dataset.Add (errorRate, rendimientoMedio, 2 * z);    
+    NS_LOG_DEBUG ("Para errorRate = " << errorRate << " --> "
+       << rendimientoMedio - z << " < rendimiento < " << rendimientoMedio + z);  
   } 
-  
+  plot.AddDataset (dataset);
   std::ofstream plotFile ("practica04.plt");
   plot.GenerateOutput (plotFile);
   plotFile << "pause -1" << std::endl;
