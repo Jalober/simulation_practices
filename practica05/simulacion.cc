@@ -83,15 +83,15 @@ main (int argc, char *argv[])
     csma.EnablePcap ("practica05", csmaDevices.Get (nCsma - 1), true);
     
     Observador observadores[nCsma]; 
-    for (uint32_t i = 0; i < nCsma -1; i++) {
+    for (uint32_t i = 0; i < nCsma; i++) {
         csmaDevices.Get(i)->TraceConnectWithoutContext ("PhyTxEnd", MakeCallback(&Observador::PaqueteEnviado, &observadores[i]));
-        csmaDevices.Get(i)->TraceConnectWithoutContext ("MacTxDrop", MakeCallback(&Observador::PaquetePerdido, &observadores[i]));
+        csmaDevices.Get(i)->TraceConnectWithoutContext ("PhyTxDrop", MakeCallback(&Observador::PaquetePerdido, &observadores[i]));
         csmaDevices.Get(i)->TraceConnectWithoutContext ("MacTxBackoff", MakeCallback(&Observador::PaqueteEnBackoff, &observadores[i]));
         csmaDevices.Get(i)->TraceConnectWithoutContext ("MacTx", MakeCallback(&Observador::PaqueteParaEnviar, &observadores[i]));
         csmaDevices.Get(i)->TraceConnectWithoutContext ("MacRx", MakeCallback(&Observador::PaqueteRecibidoParaEntregar, &observadores[i])); 
     
-        Ptr<CsmaNetDevice> csma_device =  csmaDevices.Get (i)->GetObject<CsmaNetDevice> ();
-        csma_device -> SetBackoffParams (Time ("1us"), 10, 1000, 5, 8);
+        Ptr<CsmaNetDevice> csma_device = csmaDevices.Get(i)->GetObject<CsmaNetDevice>();
+        csma_device -> SetBackoffParams (Time ("1us"), 10, 1000, 10, 8);
 
     }
  
@@ -100,12 +100,39 @@ main (int argc, char *argv[])
     Simulator::Destroy ();
     NS_LOG_FUNCTION ("Finalizada simulacion");
 
-    for (uint32_t i = 0; i < nCsma - 1; i++) {
-        NS_LOG_INFO ("Media intentos observador " << i << ": " << observadores[i].GetMediaNumIntentos());
-        NS_LOG_INFO ("Tiempo medio observador " << i << ": " << Time(observadores[i].GetMediaTiempoEco ())); 
-   
+
+    Average<uint32_t> numIntentosTotales;
+    Average<double>   tiempoEcoTotal;
+    for (uint32_t i = 0; i < nCsma; i++) {
+        
+        double mediaNumIntentos = observadores[i].GetMediaNumIntentos();
+        double mediaTiempoEco = observadores[i].GetMediaTiempoEco();
+        if (std::isnan(mediaNumIntentos)) {
+            mediaNumIntentos = 0;
+        }
+        if (std::isnan(mediaTiempoEco)) {
+            mediaTiempoEco = 0;
+        }
+
+        NS_LOG_INFO ("Media de intentos en nodo " << i << ": " << mediaNumIntentos);
+        NS_LOG_INFO ("Tiempo medio de eco en nodo " << i << ": " << Time(mediaTiempoEco)); 
+        
+        numIntentosTotales.Update(mediaNumIntentos);
+        tiempoEcoTotal.Update(mediaTiempoEco);
         
     }
+    double mediaNumIntentosTotales = numIntentosTotales.Mean();
+    double mediaTiempoEcoTotal = tiempoEcoTotal.Mean();
+    if (std::isnan(mediaNumIntentosTotales)) {
+        mediaNumIntentosTotales = 0;
+    }
+    if (std::isnan(mediaTiempoEcoTotal)) {
+        mediaTiempoEcoTotal = 0;
+    }   
+    
+    NS_LOG_DEBUG ("Media de intentos de transmision en el escenario: " << mediaNumIntentosTotales);
+    NS_LOG_DEBUG ("Tiempo de eco medio en escenario: " << Time(mediaTiempoEcoTotal));
+
 
     return 0;
 }
