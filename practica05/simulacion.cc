@@ -6,18 +6,29 @@
 #include "ns3/csma-module.h"
 #include "ns3/internet-module.h"
 #include "ns3/applications-module.h"
+#include <ns3/gnuplot.h>
+#include <sstream>
+
 
 #include "Observador.h"
 
 #define STARTTIME 2.0
-#define STOPTIME  10.0
+#define STOPTIME  100.0
+#define T_STUDENT_VALUE 2.2622
+
+typedef struct datos {
+    double mediaNumIntentosTotales;
+    double mediaTiempoEcoTotal;
+    double mediaPorcentajeErrorClientes;
+} DATOS; 
 
 using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("practica05");
 
 
-void simulacion (uint32_t nCsma, Time retardoProp, DataRate capacidad, uint32_t tamPaquete, Time intervalo, uint32_t numReintentos) {
+DATOS simulacion (uint32_t nCsma, Time retardoProp, DataRate capacidad, 
+        uint32_t tamPaquete, Time intervalo, uint32_t maxReintentos) {
     
     NodeContainer csmaNodes;
     csmaNodes.Create (nCsma);
@@ -74,7 +85,7 @@ void simulacion (uint32_t nCsma, Time retardoProp, DataRate capacidad, uint32_t 
         csmaDevices.Get(i)->TraceConnectWithoutContext ("MacRx",        MakeCallback(&Observador::PaqueteRecibidoParaEntregar, &observadores[i])); 
     
         Ptr<CsmaNetDevice> csma_device = csmaDevices.Get(i)->GetObject<CsmaNetDevice>();
-        csma_device->SetBackoffParams (Time ("1us"), 10, 1000, 10, numReintentos);
+        csma_device->SetBackoffParams (Time ("1us"), 10, 1000, 10, maxReintentos);
     }
  
     NS_LOG_FUNCTION ("Va a comenzar la simulacion");
@@ -133,22 +144,14 @@ void simulacion (uint32_t nCsma, Time retardoProp, DataRate capacidad, uint32_t 
         mediaPorcentajeErrorEscenario = 0;
     }
  
-    NS_LOG_DEBUG ("--------------------------------------------------------");
-    NS_LOG_DEBUG ("Media de intentos de transmision en el escenario: " << mediaNumIntentosTotales);
-    NS_LOG_DEBUG ("Tiempo de eco medio en el escenario: " << Time(mediaTiempoEcoTotal));
-    NS_LOG_DEBUG ("Porcentaje de paquetes perdidos por los clientes: " << mediaPorcentajeErrorClientes << " %");
-    NS_LOG_DEBUG ("Porcentaje de paquetes perdidos en el escenario: " << mediaPorcentajeErrorEscenario << " %");
-    NS_LOG_DEBUG ("--------------------------------------------------------");
+    NS_LOG_INFO ("--------------------------------------------------------");
+    NS_LOG_INFO ("Media de intentos de transmision en el escenario: " << mediaNumIntentosTotales);
+    NS_LOG_INFO ("Tiempo de eco medio en el escenario: " << Time(mediaTiempoEcoTotal));
+    NS_LOG_INFO ("Porcentaje de paquetes perdidos por los clientes: " << mediaPorcentajeErrorClientes << " %");
+    NS_LOG_INFO ("Porcentaje de paquetes perdidos en el escenario: " << mediaPorcentajeErrorEscenario << " %");
+    NS_LOG_INFO ("--------------------------------------------------------");
     
-    
-    //Desconectamos las trazas para reutilizar el escenario
-    for (uint32_t i = 0; i < nCsma; i++) {
-        csmaDevices.Get(i)->TraceDisconnectWithoutContext ("PhyTxEnd",     MakeCallback(&Observador::PaqueteEnviado,              &observadores[i]));
-        csmaDevices.Get(i)->TraceDisconnectWithoutContext ("PhyTxDrop",    MakeCallback(&Observador::PaquetePerdido,              &observadores[i]));
-        csmaDevices.Get(i)->TraceDisconnectWithoutContext ("MacTxBackoff", MakeCallback(&Observador::PaqueteEnBackoff,            &observadores[i]));
-        csmaDevices.Get(i)->TraceDisconnectWithoutContext ("MacTx",        MakeCallback(&Observador::PaqueteParaEnviar,           &observadores[i]));
-        csmaDevices.Get(i)->TraceDisconnectWithoutContext ("MacRx",        MakeCallback(&Observador::PaqueteRecibidoParaEntregar, &observadores[i])); 
-    }
+    return { mediaNumIntentosTotales, mediaTiempoEcoTotal, mediaPorcentajeErrorClientes };
 }
 
 int
@@ -163,11 +166,13 @@ main (int argc, char *argv[])
     NS_LOG_INFO ("DNI: " << dni[0]<<dni[1]<<dni[2]<<dni[3]<<dni[4]<<dni[5]<<dni[6]<<dni[7]);
 
     //Parametros de simulacion
-    uint32_t nCsma       = 10;
-    Time     retardoProp = Time ("6560ns");
-    DataRate capacidad   = DataRate ("100Mbps");
-    uint32_t tamPaquete  = 1024;
-    Time     intervalo   = Time ("1s");
+    uint32_t nCsma             = 10;
+    Time     retardoProp       = Time ("6560ns");
+    DataRate capacidad         = DataRate ("100Mbps");
+    uint32_t tamPaquete        = 1024;
+    Time     intervalo         = Time ("1s");
+    uint32_t reintentosInicial = 8;
+    uint32_t reintentosFinal   = 20;
 
     CommandLine cmd;
     cmd.AddValue ("nCsma", "Número de nodos de la red local", nCsma);
@@ -175,15 +180,59 @@ main (int argc, char *argv[])
     cmd.AddValue ("capacidad", "capacidad del bus", capacidad);
     cmd.AddValue ("tamPaquete", "tamaño de las SDU de aplicación", tamPaquete);
     cmd.AddValue ("intervalo", "tiempo entre dos paquetes consecutivos enviados por el mismo cliente", intervalo);
+    cmd.AddValue ("reintentosInicial", "valor inicial de reintentos", reintentosInicial);
+    cmd.AddValue ("reintentosFinal", "valor final de reintentos", reintentosFinal);
     cmd.Parse (argc,argv);
     
-        
+    Gnuplot plot[3];
+    plot[0].SetTitle ("Evolución del número medio de intentos");
+    plot[0].SetLegend ("maxReint", "numIntentos");
+    plot[1].SetTitle ("Evolución del tiempo medio de eco");
+    plot[1].SetLegend ("maxReint", "tEco (us)");
+    plot[2].SetTitle ("Evolución del porcentaje de error");
+    plot[2].SetLengend ("maxReint", "perror (%)");
 
-    for (int i = 0; i < 2; i++) {
-        //Modificamos la semilla de la simulacion
-        SeedManager::SetRun (seed++);
-        simulacion(nCsma, retardoProp, capacidad, tamPaquete, intervalo, 8);
+    Gnuplot2dDataset dataset[3];
+    for (int i = 0; i < 3 ; i++) {
+        dataset[i].SetStyle (Gnuplot2dDataset::LINES_POINTS);
+        dataset[i].SetErrorBars(Gnuplot2dDataset::Y);
+    }
+    
+    for (uint32_t maxReintentos = reintentosInicial; maxReintentos <= reintentosFinal; maxReintentos++) {
+        Average<double> numIntentosTotales;
+        Average<double> tiempoEcoTotal;
+        Average<double> porcentajeErrorClientes;
+        for (int i = 0; i < 10; i++) {
+            DATOS datos;
+            //Modificamos la semilla de la simulacion
+            SeedManager::SetRun (seed++);
+            datos = simulacion(nCsma, retardoProp, capacidad, tamPaquete, intervalo, maxReintentos);
+            numIntentosTotales.Update (datos.mediaNumIntentosTotales);
+            tiempoEcoTotal.Update (datos.mediaTiempoEcoTotal);
+            porcentajeErrorClientes.Update (datos.mediaPorcentajeErrorClientes);
+        }
+        double z[3];
+        z[0] = T_STUDENT_VALUE * std::sqrt (numIntentosTotales.Var() / 10);
+        dataset[0].Add(maxReintentos, numIntentosTotales.Mean(), 2 * z[0]);
+        z[1] = T_STUDENT_VALUE * std::sqrt (tiempoEcoTotal.Var() / 10);
+        dataset[1].Add(maxReintentos, tiempoEcoTotal.Mean(), 2 * z[1]);
+        z[2] = T_STUDENT_VALUE * std::sqrt (porcentajeErrorClientes.Var() / 10);
+        dataset[2].Add(maxReintentos, porcentajeErrorClientes.Mean(), 2 * z[2]);
+        NS_LOG_DEBUG (numIntentosTotales.Mean() - z[0] << " < numIntentosTotales < " << numIntentosTotales.Mean() + z[0]);
+        NS_LOG_DEBUG (tiempoEcoTotal.Mean() - z[1] << " < tiempoEcoTotal < " << tiempoEcoTotal.Mean() + z[1]);
+        NS_LOG_DEBUG (porcentajeErrorClientes.Mean() - z[2] << " < porcentajeErrorClientes < " << porcentajeErrorClientes.Mean() + z[2]);
+        NS_LOG_DEBUG ("");
     }
 
+    for (int i = 0; i < 3; i++) {
+        plot[i].AddDataset (dataset[i]);
+        std::ostringstream nombreFichero;
+        nombreFichero << "practica05-0" << i << ".plt";
+        std::ofstream plotFile (nombreFichero.str());
+        plot.GenerateOutput (plotFile);
+        plotFile << "pause -1" << std::endl;
+        plotFile.close ();
+    }
+   
     return 0;
 }
