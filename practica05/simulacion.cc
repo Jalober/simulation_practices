@@ -28,7 +28,7 @@ NS_LOG_COMPONENT_DEFINE ("practica05");
 
 
 DATOS simulacion (uint32_t nCsma, Time retardoProp, DataRate capacidad, 
-        uint32_t tamPaquete, Time intervalo, uint32_t maxReintentos) {
+        uint32_t tamPaquete, Time intervalo, uint32_t maxReintentos, double tSimulacion) {
     
     NodeContainer csmaNodes;
     csmaNodes.Create (nCsma);
@@ -52,7 +52,7 @@ DATOS simulacion (uint32_t nCsma, Time retardoProp, DataRate capacidad,
     UdpEchoServerHelper echoServer (9);
     ApplicationContainer serverApp = echoServer.Install (csmaNodes.Get (nCsma - 1));
     serverApp.Start (Seconds (STARTTIME));
-    serverApp.Stop (Seconds (STOPTIME));
+    serverApp.Stop (Seconds (STARTTIME + tSimulacion));
     // Clientes
     UdpEchoClientHelper echoClient (csmaInterfaces.GetAddress (nCsma - 1), 9);
     echoClient.SetAttribute ("MaxPackets", UintegerValue (10000));
@@ -69,7 +69,7 @@ DATOS simulacion (uint32_t nCsma, Time retardoProp, DataRate capacidad,
     ApplicationContainer clientApps = echoClient.Install (clientes);
     NS_LOG_FUNCTION ("Instalacion de clientes de echo realizada");
     clientApps.Start (Seconds (STARTTIME));
-    clientApps.Stop (Seconds (STOPTIME));
+    clientApps.Stop (Seconds (STARTTIME + tSimulacion));
 
     // Cálculo de rutas
     Ipv4GlobalRoutingHelper::PopulateRoutingTables ();
@@ -174,6 +174,7 @@ main (int argc, char *argv[])
     Time     intervalo         = Time ("1s");
     uint32_t reintentosInicial = 2;
     uint32_t reintentosFinal   = 12;
+    double   tSimulacion       = 1000;
    
     CommandLine cmd;
     cmd.AddValue ("nCsma", "Número de nodos de la red local", nCsma);
@@ -183,6 +184,7 @@ main (int argc, char *argv[])
     cmd.AddValue ("intervalo", "tiempo entre dos paquetes consecutivos enviados por el mismo cliente", intervalo);
     cmd.AddValue ("reintentosInicial", "valor inicial de reintentos", reintentosInicial);
     cmd.AddValue ("reintentosFinal", "valor final de reintentos", reintentosFinal);
+    cmd.AddValue ("tSimulacion", "tiempo de cada simulacion", tSimulacion);
     cmd.Parse (argc,argv);
   
     NS_LOG_FUNCTION("nCsma" << nCsma);
@@ -215,7 +217,7 @@ main (int argc, char *argv[])
             DATOS datos;
             //Modificamos la semilla de la simulacion
             SeedManager::SetRun (seed++);
-            datos = simulacion(nCsma, retardoProp, capacidad, tamPaquete, intervalo, maxReintentos);
+            datos = simulacion(nCsma, retardoProp, capacidad, tamPaquete, intervalo, maxReintentos, tSimulacion);
             numIntentosTotales.Update (datos.mediaNumIntentosTotales);
             tiempoEcoTotal.Update (datos.mediaTiempoEcoTotal);
             porcentajeErrorClientes.Update (datos.mediaPorcentajeErrorClientes);
