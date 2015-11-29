@@ -84,11 +84,11 @@ main (int argc, char *argv[])
     
     Observador observadores[nCsma]; 
     for (uint32_t i = 0; i < nCsma; i++) {
-        csmaDevices.Get(i)->TraceConnectWithoutContext ("PhyTxEnd", MakeCallback(&Observador::PaqueteEnviado, &observadores[i]));
-        csmaDevices.Get(i)->TraceConnectWithoutContext ("PhyTxDrop", MakeCallback(&Observador::PaquetePerdido, &observadores[i]));
-        csmaDevices.Get(i)->TraceConnectWithoutContext ("MacTxBackoff", MakeCallback(&Observador::PaqueteEnBackoff, &observadores[i]));
-        csmaDevices.Get(i)->TraceConnectWithoutContext ("MacTx", MakeCallback(&Observador::PaqueteParaEnviar, &observadores[i]));
-        csmaDevices.Get(i)->TraceConnectWithoutContext ("MacRx", MakeCallback(&Observador::PaqueteRecibidoParaEntregar, &observadores[i])); 
+        csmaDevices.Get(i)->TraceConnectWithoutContext ("PhyTxEnd",     MakeCallback(&Observador::PaqueteEnviado,              &observadores[i]));
+        csmaDevices.Get(i)->TraceConnectWithoutContext ("PhyTxDrop",    MakeCallback(&Observador::PaquetePerdido,              &observadores[i]));
+        csmaDevices.Get(i)->TraceConnectWithoutContext ("MacTxBackoff", MakeCallback(&Observador::PaqueteEnBackoff,            &observadores[i]));
+        csmaDevices.Get(i)->TraceConnectWithoutContext ("MacTx",        MakeCallback(&Observador::PaqueteParaEnviar,           &observadores[i]));
+        csmaDevices.Get(i)->TraceConnectWithoutContext ("MacRx",        MakeCallback(&Observador::PaqueteRecibidoParaEntregar, &observadores[i])); 
     
         Ptr<CsmaNetDevice> csma_device = csmaDevices.Get(i)->GetObject<CsmaNetDevice>();
         csma_device -> SetBackoffParams (Time ("1us"), 10, 1000, 10, 8);
@@ -103,10 +103,15 @@ main (int argc, char *argv[])
 
     Average<uint32_t> numIntentosTotales;
     Average<double>   tiempoEcoTotal;
-    for (uint32_t i = 0; i < nCsma; i++) {
+    Average<double>   porcentajeErrorClientes;
+    Average<double>   porcentajeErrorEscenario;
+
+    for (uint32_t i = 1; i < nCsma; i++) {
         
         double mediaNumIntentos = observadores[i].GetMediaNumIntentos();
         double mediaTiempoEco = observadores[i].GetMediaTiempoEco();
+        double porcentajeError = observadores[i].GetPorcentajePaquetesPerdidos();        
+
         if (std::isnan(mediaNumIntentos)) {
             mediaNumIntentos = 0;
         }
@@ -116,23 +121,41 @@ main (int argc, char *argv[])
 
         NS_LOG_INFO ("Media de intentos en nodo " << i << ": " << mediaNumIntentos);
         NS_LOG_INFO ("Tiempo medio de eco en nodo " << i << ": " << Time(mediaTiempoEco)); 
-        
-        numIntentosTotales.Update(mediaNumIntentos);
-        tiempoEcoTotal.Update(mediaTiempoEco);
-        
+        NS_LOG_INFO ("Porcentaje de paquetes perdidos en nodo " << i << ": " << porcentajeError << " %");       
+        NS_LOG_INFO ("");
+
+        porcentajeErrorEscenario.Update(porcentajeError);
+        if (i < nCsma - 1) {
+            porcentajeErrorClientes.Update(porcentajeError);
+            tiempoEcoTotal.Update(mediaTiempoEco);
+            numIntentosTotales.Update(mediaNumIntentos);
+        }
     }
+
     double mediaNumIntentosTotales = numIntentosTotales.Mean();
     double mediaTiempoEcoTotal = tiempoEcoTotal.Mean();
+    double mediaPorcentajeErrorClientes = porcentajeErrorClientes.Mean();
+    double mediaPorcentajeErrorEscenario = porcentajeErrorEscenario.Mean(); 
+
     if (std::isnan(mediaNumIntentosTotales)) {
         mediaNumIntentosTotales = 0;
     }
     if (std::isnan(mediaTiempoEcoTotal)) {
         mediaTiempoEcoTotal = 0;
-    }   
-    
+    }
+    if (std::isnan(mediaPorcentajeErrorClientes)) {
+        mediaPorcentajeErrorClientes = 0;
+    }
+    if (std::isnan(mediaPorcentajeErrorEscenario)) {
+        mediaPorcentajeErrorEscenario = 0;
+    }
+ 
+    NS_LOG_DEBUG ("--------------------------------------------------------");
     NS_LOG_DEBUG ("Media de intentos de transmision en el escenario: " << mediaNumIntentosTotales);
-    NS_LOG_DEBUG ("Tiempo de eco medio en escenario: " << Time(mediaTiempoEcoTotal));
-
+    NS_LOG_DEBUG ("Tiempo de eco medio en el escenario: " << Time(mediaTiempoEcoTotal));
+    NS_LOG_DEBUG ("Porcentaje de paquetes perdidos por los clientes: " << mediaPorcentajeErrorClientes << " %");
+    NS_LOG_DEBUG ("Porcentaje de paquetes perdidos en el escenario: " << mediaPorcentajeErrorEscenario << " %");
+    NS_LOG_DEBUG ("--------------------------------------------------------");
 
     return 0;
 }

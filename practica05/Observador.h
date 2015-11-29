@@ -16,11 +16,14 @@ public:
   void PaqueteRecibidoParaEntregar (Ptr<const Packet> paquete);
   double GetMediaNumIntentos ();
   double GetMediaTiempoEco ();
- 
+  double GetPorcentajePaquetesPerdidos ();
+
 private:
   Average<uint32_t> m_acum_numeroIntentos;
   Average<double>   m_acum_tEco;
   uint32_t          m_numeroIntentos;
   double            m_tinicial;
   double            m_tfinal; 
+  uint32_t          m_numeroPaquetesCorrectos;
+  uint32_t          m_numeroPaquetesPerdidos;
 };
