@@ -16,14 +16,14 @@ using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("practica05");
 
-void simulacion (NetDeviceContainer csmaDevices, uint32_t nCsma, uint32_t numReintentos) {
+void simulacion (NetDeviceContainer * csmaDevices, uint32_t nCsma, uint32_t numReintentos) {
     Observador observadores[nCsma]; 
     for (uint32_t i = 0; i < nCsma; i++) {
-        csmaDevices.Get(i)->TraceConnectWithoutContext ("PhyTxEnd",     MakeCallback(&Observador::PaqueteEnviado,              &observadores[i]));
-        csmaDevices.Get(i)->TraceConnectWithoutContext ("PhyTxDrop",    MakeCallback(&Observador::PaquetePerdido,              &observadores[i]));
-        csmaDevices.Get(i)->TraceConnectWithoutContext ("MacTxBackoff", MakeCallback(&Observador::PaqueteEnBackoff,            &observadores[i]));
-        csmaDevices.Get(i)->TraceConnectWithoutContext ("MacTx",        MakeCallback(&Observador::PaqueteParaEnviar,           &observadores[i]));
-        csmaDevices.Get(i)->TraceConnectWithoutContext ("MacRx",        MakeCallback(&Observador::PaqueteRecibidoParaEntregar, &observadores[i])); 
+        csmaDevices->Get(i)->TraceConnectWithoutContext ("PhyTxEnd",     MakeCallback(&Observador::PaqueteEnviado,              &observadores[i]));
+        csmaDevices->Get(i)->TraceConnectWithoutContext ("PhyTxDrop",    MakeCallback(&Observador::PaquetePerdido,              &observadores[i]));
+        csmaDevices->Get(i)->TraceConnectWithoutContext ("MacTxBackoff", MakeCallback(&Observador::PaqueteEnBackoff,            &observadores[i]));
+        csmaDevices->Get(i)->TraceConnectWithoutContext ("MacTx",        MakeCallback(&Observador::PaqueteParaEnviar,           &observadores[i]));
+        csmaDevices->Get(i)->TraceConnectWithoutContext ("MacRx",        MakeCallback(&Observador::PaqueteRecibidoParaEntregar, &observadores[i])); 
     
         Ptr<CsmaNetDevice> csma_device = csmaDevices.Get(i)->GetObject<CsmaNetDevice>();
         csma_device->SetBackoffParams (Time ("1us"), 10, 1000, 10, numReintentos);
@@ -95,11 +95,11 @@ void simulacion (NetDeviceContainer csmaDevices, uint32_t nCsma, uint32_t numRei
     
     //Desconectamos las trazas para reutilizar el escenario
     for (uint32_t i = 0; i < nCsma; i++) {
-        csmaDevices.Get(i)->TraceDisconnectWithoutContext ("PhyTxEnd",     MakeCallback(&Observador::PaqueteEnviado,              &observadores[i]));
-        csmaDevices.Get(i)->TraceDisconnectWithoutContext ("PhyTxDrop",    MakeCallback(&Observador::PaquetePerdido,              &observadores[i]));
-        csmaDevices.Get(i)->TraceDisconnectWithoutContext ("MacTxBackoff", MakeCallback(&Observador::PaqueteEnBackoff,            &observadores[i]));
-        csmaDevices.Get(i)->TraceDisconnectWithoutContext ("MacTx",        MakeCallback(&Observador::PaqueteParaEnviar,           &observadores[i]));
-        csmaDevices.Get(i)->TraceDisconnectWithoutContext ("MacRx",        MakeCallback(&Observador::PaqueteRecibidoParaEntregar, &observadores[i])); 
+        csmaDevices->Get(i)->TraceDisconnectWithoutContext ("PhyTxEnd",     MakeCallback(&Observador::PaqueteEnviado,              &observadores[i]));
+        csmaDevices->Get(i)->TraceDisconnectWithoutContext ("PhyTxDrop",    MakeCallback(&Observador::PaquetePerdido,              &observadores[i]));
+        csmaDevices->Get(i)->TraceDisconnectWithoutContext ("MacTxBackoff", MakeCallback(&Observador::PaqueteEnBackoff,            &observadores[i]));
+        csmaDevices->Get(i)->TraceDisconnectWithoutContext ("MacTx",        MakeCallback(&Observador::PaqueteParaEnviar,           &observadores[i]));
+        csmaDevices->Get(i)->TraceDisconnectWithoutContext ("MacRx",        MakeCallback(&Observador::PaqueteRecibidoParaEntregar, &observadores[i])); 
     }
 
 }
@@ -175,12 +175,7 @@ main (int argc, char *argv[])
     csma.EnablePcap ("practica05", csmaDevices.Get (nCsma - 1), true);
     
     for (int i = 0; i < 2; i++) {
-        serverApp.Start (Seconds (STARTTIME));
-        serverApp.Stop (Seconds (STOPTIME));
-        clientApps.Start (Seconds (STARTTIME));
-        clientApps.Stop (Seconds (STOPTIME));
-
-        simulacion(csmaDevices, nCsma, 8);
+        simulacion(&csmaDevices, nCsma, 8);
     }
 
     return 0;
