@@ -13,7 +13,7 @@
 #include "Observador.h"
 
 #define STARTTIME 2.0
-#define STOPTIME  100.0
+#define STOPTIME  10000.0
 #define T_STUDENT_VALUE 2.2622
 
 typedef struct datos {
@@ -163,18 +163,18 @@ main (int argc, char *argv[])
 
     uint32_t seed = 1;
 
-    int dni[8] = {3,0,2,2,8,4,1,3};
-    NS_LOG_INFO ("DNI: " << dni[0]<<dni[1]<<dni[2]<<dni[3]<<dni[4]<<dni[5]<<dni[6]<<dni[7]);
+    uint32_t dni[8] = {3,1,4,8,2,2,0,3};
+    NS_LOG_INFO ("DNI: " << dni[8]<<dni[7]<<dni[6]<<dni[5]<<dni[4]<<dni[3]<<dni[2]<<dni[1]);
 
     //Parametros de simulacion
-    uint32_t nCsma             = 10;
+    uint32_t nCsma             = 10-dni[0]/2;
     Time     retardoProp       = Time ("6560ns");
     DataRate capacidad         = DataRate ("100Mbps");
-    uint32_t tamPaquete        = 1024;
+    uint32_t tamPaquete        = 500+100*dni[1];
     Time     intervalo         = Time ("1s");
-    uint32_t reintentosInicial = 8;
-    uint32_t reintentosFinal   = 20;
-
+    uint32_t reintentosInicial = 2;
+    uint32_t reintentosFinal   = 12;
+   
     CommandLine cmd;
     cmd.AddValue ("nCsma", "Número de nodos de la red local", nCsma);
     cmd.AddValue ("retardoProp", "retardo de propagación en el bus", retardoProp);
@@ -184,7 +184,15 @@ main (int argc, char *argv[])
     cmd.AddValue ("reintentosInicial", "valor inicial de reintentos", reintentosInicial);
     cmd.AddValue ("reintentosFinal", "valor final de reintentos", reintentosFinal);
     cmd.Parse (argc,argv);
-    
+  
+    NS_LOG_FUNCTION("nCsma" << nCsma);
+    NS_LOG_FUNCTION("retardoProp" << retardoProp);
+    NS_LOG_FUNCTION("capacidad" << capacidad);
+    NS_LOG_FUNCTION("tamPaquete" << tamPaquete);
+    NS_LOG_FUNCTION("intervalo" << intervalo);
+    NS_LOG_FUNCTION("reintentosInicial" << reintentosInicial);
+    NS_LOG_FUNCTION("reintentosFinal" << reintentosFinal);
+
     Gnuplot plot[3];
     plot[0].SetTitle ("Evolución del número medio de intentos");
     plot[0].SetLegend ("maxReint", "numIntentos");
