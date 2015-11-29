@@ -16,8 +16,8 @@ using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("practica05");
 
-void simulacion (NetDeviceContainer csmaDevices, uint32_t numReintentos) {
-   Observador observadores[nCsma]; 
+void simulacion (NetDeviceContainer csmaDevices, uint32_t nCsma, uint32_t numReintentos) {
+    Observador observadores[nCsma]; 
     for (uint32_t i = 0; i < nCsma; i++) {
         csmaDevices.Get(i)->TraceConnectWithoutContext ("PhyTxEnd",     MakeCallback(&Observador::PaqueteEnviado,              &observadores[i]));
         csmaDevices.Get(i)->TraceConnectWithoutContext ("PhyTxDrop",    MakeCallback(&Observador::PaquetePerdido,              &observadores[i]));
@@ -40,7 +40,7 @@ void simulacion (NetDeviceContainer csmaDevices, uint32_t numReintentos) {
     Average<double>   porcentajeErrorClientes;
     Average<double>   porcentajeErrorEscenario;
 
-    for (uint32_t i = 1; i < nCsma; i++) {
+    for (uint32_t i = 0; i < nCsma; i++) {
         
         double mediaNumIntentos = observadores[i].GetMediaNumIntentos();
         double mediaTiempoEco = observadores[i].GetMediaTiempoEco();
@@ -54,16 +54,17 @@ void simulacion (NetDeviceContainer csmaDevices, uint32_t numReintentos) {
         }
 
         NS_LOG_INFO ("Media de intentos en nodo " << i << ": " << mediaNumIntentos);
-        NS_LOG_INFO ("Tiempo medio de eco en nodo " << i << ": " << Time(mediaTiempoEco)); 
-        NS_LOG_INFO ("Porcentaje de paquetes perdidos en nodo " << i << ": " << porcentajeError << " %");       
-        NS_LOG_INFO ("");
-
         porcentajeErrorEscenario.Update(porcentajeError);
         if (i < nCsma - 1) {
-            porcentajeErrorClientes.Update(porcentajeError);
-            tiempoEcoTotal.Update(mediaTiempoEco);
-            numIntentosTotales.Update(mediaNumIntentos);
+           NS_LOG_INFO ("Tiempo medio de eco en nodo " << i << ": " << Time(mediaTiempoEco));
+           if (i > 1) {
+               porcentajeErrorClientes.Update(porcentajeError);
+               tiempoEcoTotal.Update(mediaTiempoEco);
+               numIntentosTotales.Update(mediaNumIntentos);
+           }
         }
+        NS_LOG_INFO ("Porcentaje de paquetes perdidos en nodo " << i << ": " << porcentajeError << " %");
+        NS_LOG_INFO ("");
     }
 
     double mediaNumIntentosTotales = numIntentosTotales.Mean();
@@ -91,7 +92,7 @@ void simulacion (NetDeviceContainer csmaDevices, uint32_t numReintentos) {
     NS_LOG_DEBUG ("Porcentaje de paquetes perdidos en el escenario: " << mediaPorcentajeErrorEscenario << " %");
     NS_LOG_DEBUG ("--------------------------------------------------------");
     
-    /*
+    
     //Desconectamos las trazas para reutilizar el escenario
     for (uint32_t i = 0; i < nCsma; i++) {
         csmaDevices.Get(i)->TraceDisconnectWithoutContext ("PhyTxEnd",     MakeCallback(&Observador::PaqueteEnviado,              &observadores[i]));
@@ -100,9 +101,7 @@ void simulacion (NetDeviceContainer csmaDevices, uint32_t numReintentos) {
         csmaDevices.Get(i)->TraceDisconnectWithoutContext ("MacTx",        MakeCallback(&Observador::PaqueteParaEnviar,           &observadores[i]));
         csmaDevices.Get(i)->TraceDisconnectWithoutContext ("MacRx",        MakeCallback(&Observador::PaqueteRecibidoParaEntregar, &observadores[i])); 
     }
-    */
 
-    return 0;
 }
 
 int
@@ -159,7 +158,6 @@ main (int argc, char *argv[])
     for (uint32_t i = 0; i < nCsma - 1; i++)
     {
     	clientes.Add (csmaNodes.Get (i));
-        //Añadimos un observador por cliente
     }
     NS_LOG_FUNCTION ("Fin bucle de creacion de observadores");
 
@@ -172,8 +170,10 @@ main (int argc, char *argv[])
     Ipv4GlobalRoutingHelper::PopulateRoutingTables ();
 
     csma.EnablePcap ("practica05", csmaDevices.Get (nCsma - 1), true);
-
-    simulacion(csmaDevices, 8);
     
+    for (int i = 0; i < 2; i++) {
+        simulacion(csmaDevices, nCsma, 8);
+    }
+
     return 0;
 }

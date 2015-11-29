@@ -13,6 +13,9 @@ Observador::Observador ()
   m_numeroIntentos = 0;
   m_numeroPaquetesCorrectos = 0;
   m_numeroPaquetesPerdidos = 0;
+  m_tinicial = 0;
+  m_tfinal = 0;
+
 }
 void
 Observador::PaqueteEnviado (Ptr<const Packet> paquete) {
@@ -41,7 +44,11 @@ Observador::PaqueteParaEnviar (Ptr<const Packet> paquete) {
 void
 Observador::PaqueteRecibidoParaEntregar (Ptr<const Packet> paquete) {
   m_tfinal = Simulator::Now().GetDouble ();
-  m_acum_tEco.Update(m_tfinal - m_tinicial);
+  if (m_tfinal > m_tinicial) {
+    m_acum_tEco.Update(m_tfinal - m_tinicial);
+  }
+  m_tinicial = 0;
+  m_tfinal   = 0;  
 }
 
 double
