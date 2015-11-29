@@ -67,13 +67,13 @@ void simulacion (uint32_t nCsma, Time retardoProp, DataRate capacidad, uint32_t 
 
     Observador observadores[nCsma]; 
     for (uint32_t i = 0; i < nCsma; i++) {
-        csmaDevices->Get(i)->TraceConnectWithoutContext ("PhyTxEnd",     MakeCallback(&Observador::PaqueteEnviado,              &observadores[i]));
-        csmaDevices->Get(i)->TraceConnectWithoutContext ("PhyTxDrop",    MakeCallback(&Observador::PaquetePerdido,              &observadores[i]));
-        csmaDevices->Get(i)->TraceConnectWithoutContext ("MacTxBackoff", MakeCallback(&Observador::PaqueteEnBackoff,            &observadores[i]));
-        csmaDevices->Get(i)->TraceConnectWithoutContext ("MacTx",        MakeCallback(&Observador::PaqueteParaEnviar,           &observadores[i]));
-        csmaDevices->Get(i)->TraceConnectWithoutContext ("MacRx",        MakeCallback(&Observador::PaqueteRecibidoParaEntregar, &observadores[i])); 
+        csmaDevices.Get(i)->TraceConnectWithoutContext ("PhyTxEnd",     MakeCallback(&Observador::PaqueteEnviado,              &observadores[i]));
+        csmaDevices.Get(i)->TraceConnectWithoutContext ("PhyTxDrop",    MakeCallback(&Observador::PaquetePerdido,              &observadores[i]));
+        csmaDevices.Get(i)->TraceConnectWithoutContext ("MacTxBackoff", MakeCallback(&Observador::PaqueteEnBackoff,            &observadores[i]));
+        csmaDevices.Get(i)->TraceConnectWithoutContext ("MacTx",        MakeCallback(&Observador::PaqueteParaEnviar,           &observadores[i]));
+        csmaDevices.Get(i)->TraceConnectWithoutContext ("MacRx",        MakeCallback(&Observador::PaqueteRecibidoParaEntregar, &observadores[i])); 
     
-        Ptr<CsmaNetDevice> csma_device = csmaDevices->Get(i)->GetObject<CsmaNetDevice>();
+        Ptr<CsmaNetDevice> csma_device = csmaDevices.Get(i)->GetObject<CsmaNetDevice>();
         csma_device->SetBackoffParams (Time ("1us"), 10, 1000, 10, numReintentos);
     }
  
@@ -143,11 +143,11 @@ void simulacion (uint32_t nCsma, Time retardoProp, DataRate capacidad, uint32_t 
     
     //Desconectamos las trazas para reutilizar el escenario
     for (uint32_t i = 0; i < nCsma; i++) {
-        csmaDevices->Get(i)->TraceDisconnectWithoutContext ("PhyTxEnd",     MakeCallback(&Observador::PaqueteEnviado,              &observadores[i]));
-        csmaDevices->Get(i)->TraceDisconnectWithoutContext ("PhyTxDrop",    MakeCallback(&Observador::PaquetePerdido,              &observadores[i]));
-        csmaDevices->Get(i)->TraceDisconnectWithoutContext ("MacTxBackoff", MakeCallback(&Observador::PaqueteEnBackoff,            &observadores[i]));
-        csmaDevices->Get(i)->TraceDisconnectWithoutContext ("MacTx",        MakeCallback(&Observador::PaqueteParaEnviar,           &observadores[i]));
-        csmaDevices->Get(i)->TraceDisconnectWithoutContext ("MacRx",        MakeCallback(&Observador::PaqueteRecibidoParaEntregar, &observadores[i])); 
+        csmaDevices.Get(i)->TraceDisconnectWithoutContext ("PhyTxEnd",     MakeCallback(&Observador::PaqueteEnviado,              &observadores[i]));
+        csmaDevices.Get(i)->TraceDisconnectWithoutContext ("PhyTxDrop",    MakeCallback(&Observador::PaquetePerdido,              &observadores[i]));
+        csmaDevices.Get(i)->TraceDisconnectWithoutContext ("MacTxBackoff", MakeCallback(&Observador::PaqueteEnBackoff,            &observadores[i]));
+        csmaDevices.Get(i)->TraceDisconnectWithoutContext ("MacTx",        MakeCallback(&Observador::PaqueteParaEnviar,           &observadores[i]));
+        csmaDevices.Get(i)->TraceDisconnectWithoutContext ("MacRx",        MakeCallback(&Observador::PaqueteRecibidoParaEntregar, &observadores[i])); 
     }
 }
 
