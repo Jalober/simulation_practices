@@ -25,7 +25,7 @@ void simulacion (NetDeviceContainer * csmaDevices, uint32_t nCsma, uint32_t numR
         csmaDevices->Get(i)->TraceConnectWithoutContext ("MacTx",        MakeCallback(&Observador::PaqueteParaEnviar,           &observadores[i]));
         csmaDevices->Get(i)->TraceConnectWithoutContext ("MacRx",        MakeCallback(&Observador::PaqueteRecibidoParaEntregar, &observadores[i])); 
     
-        Ptr<CsmaNetDevice> csma_device = csmaDevices.Get(i)->GetObject<CsmaNetDevice>();
+        Ptr<CsmaNetDevice> csma_device = csmaDevices->Get(i)->GetObject<CsmaNetDevice>();
         csma_device->SetBackoffParams (Time ("1us"), 10, 1000, 10, numReintentos);
     }
  
