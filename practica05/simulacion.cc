@@ -157,6 +157,8 @@ main (int argc, char *argv[])
     GlobalValue::Bind("ChecksumEnabled", BooleanValue(true));
     Time::SetResolution (Time::US);
 
+    uint32_t seed = 1;
+
     int dni[8] = {3,0,2,2,8,4,1,3};
     NS_LOG_INFO ("DNI: " << dni[0]<<dni[1]<<dni[2]<<dni[3]<<dni[4]<<dni[5]<<dni[6]<<dni[7]);
 
@@ -178,6 +180,8 @@ main (int argc, char *argv[])
         
 
     for (int i = 0; i < 2; i++) {
+        //Modificamos la semilla de la simulacion
+        SeedManager::SetRun (seed++);
         simulacion(nCsma, retardoProp, capacidad, tamPaquete, intervalo, 8);
     }
 
