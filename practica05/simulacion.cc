@@ -110,6 +110,9 @@ main (int argc, char *argv[])
     GlobalValue::Bind("ChecksumEnabled", BooleanValue(true));
     Time::SetResolution (Time::US);
 
+    int dni[8] = {3,0,2,2,8,4,1,3};
+    NS_LOG_INFO ("DNI: " << dni[0]<<dni[1]<<dni[2]<<dni[3]<<dni[4]<<dni[5]<<dni[6]<<dni[7]);
+
     //Parametros de simulacion
     uint32_t nCsma       = 10;
     Time     retardoProp = Time ("6560ns");
@@ -172,6 +175,11 @@ main (int argc, char *argv[])
     csma.EnablePcap ("practica05", csmaDevices.Get (nCsma - 1), true);
     
     for (int i = 0; i < 2; i++) {
+        serverApp.Start (Seconds (STARTTIME));
+        serverApp.Stop (Seconds (STOPTIME));
+        clientApps.Start (Seconds (STARTTIME));
+        clientApps.Stop (Seconds (STOPTIME));
+
         simulacion(csmaDevices, nCsma, 8);
     }
 
