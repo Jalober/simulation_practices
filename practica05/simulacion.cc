@@ -151,7 +151,8 @@ DATOS simulacion (uint32_t nCsma, Time retardoProp, DataRate capacidad,
     NS_LOG_INFO ("Porcentaje de paquetes perdidos en el escenario: " << mediaPorcentajeErrorEscenario << " %");
     NS_LOG_INFO ("--------------------------------------------------------");
     
-    return { mediaNumIntentosTotales, mediaTiempoEcoTotal, mediaPorcentajeErrorClientes };
+    DATOS datos = { mediaNumIntentosTotales, mediaTiempoEcoTotal, mediaPorcentajeErrorClientes };
+    return datos;
 }
 
 int
@@ -190,7 +191,7 @@ main (int argc, char *argv[])
     plot[1].SetTitle ("Evolución del tiempo medio de eco");
     plot[1].SetLegend ("maxReint", "tEco (us)");
     plot[2].SetTitle ("Evolución del porcentaje de error");
-    plot[2].SetLengend ("maxReint", "perror (%)");
+    plot[2].SetLegend ("maxReint", "perror (%)");
 
     Gnuplot2dDataset dataset[3];
     for (int i = 0; i < 3 ; i++) {
@@ -224,15 +225,25 @@ main (int argc, char *argv[])
         NS_LOG_DEBUG ("");
     }
 
-    for (int i = 0; i < 3; i++) {
-        plot[i].AddDataset (dataset[i]);
-        std::ostringstream nombreFichero;
-        nombreFichero << "practica05-0" << i << ".plt";
-        std::ofstream plotFile (nombreFichero.str());
-        plot.GenerateOutput (plotFile);
-        plotFile << "pause -1" << std::endl;
-        plotFile.close ();
-    }
+        plot[0].AddDataset (dataset[0]);
+        std::ofstream plotFile1 ("practica05-01.plt");
+        plot[0].GenerateOutput (plotFile1);
+        plotFile1 << "pause -1" << std::endl;
+        plotFile1.close ();
+       
+        
+        plot[1].AddDataset (dataset[1]);
+        std::ofstream plotFile2 ("practica05-02.plt");
+        plot[1].GenerateOutput (plotFile2);
+        plotFile2 << "pause -1" << std::endl;
+        plotFile2.close ();
+ 
+        
+        plot[2].AddDataset (dataset[2]);
+        std::ofstream plotFile3 ("practica05-03.plt");
+        plot[2].GenerateOutput (plotFile3);
+        plotFile3 << "pause -1" << std::endl;
+        plotFile3.close ();
    
     return 0;
 }
