@@ -16,7 +16,55 @@ using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("practica05");
 
-void simulacion (NetDeviceContainer * csmaDevices, uint32_t nCsma, uint32_t numReintentos) {
+
+void simulacion (uint32_t nCsma, Time retardoProp, DataRate capacidad, uint32_t tamPaquete, Time intervalo, uint32_t numReintentos) {
+    
+    NodeContainer csmaNodes;
+    csmaNodes.Create (nCsma);
+
+    CsmaHelper csma;
+    csma.SetChannelAttribute ("DataRate", DataRateValue (capacidad));
+    csma.SetChannelAttribute ("Delay", TimeValue (retardoProp));
+
+    NetDeviceContainer csmaDevices;
+    csmaDevices = csma.Install (csmaNodes);
+    // Instalamos la pila TCP/IP en todos los nodos
+    InternetStackHelper stack;
+    stack.Install (csmaNodes);
+    // Y les asignamos direcciones
+    Ipv4AddressHelper address;
+    address.SetBase ("10.1.2.0", "255.255.255.0");
+    Ipv4InterfaceContainer csmaInterfaces = address.Assign (csmaDevices);
+
+    /////////// Instalación de las aplicaciones
+    // Servidor
+    UdpEchoServerHelper echoServer (9);
+    ApplicationContainer serverApp = echoServer.Install (csmaNodes.Get (nCsma - 1));
+    serverApp.Start (Seconds (STARTTIME));
+    serverApp.Stop (Seconds (STOPTIME));
+    // Clientes
+    UdpEchoClientHelper echoClient (csmaInterfaces.GetAddress (nCsma - 1), 9);
+    echoClient.SetAttribute ("MaxPackets", UintegerValue (10000));
+    echoClient.SetAttribute ("Interval", TimeValue (intervalo));
+    echoClient.SetAttribute ("PacketSize", UintegerValue (tamPaquete));
+    NodeContainer clientes;
+
+    for (uint32_t i = 0; i < nCsma - 1; i++)
+    {
+        clientes.Add (csmaNodes.Get (i));
+    }
+    NS_LOG_FUNCTION ("Fin bucle de creacion de observadores");
+
+    ApplicationContainer clientApps = echoClient.Install (clientes);
+    NS_LOG_FUNCTION ("Instalacion de clientes de echo realizada");
+    clientApps.Start (Seconds (STARTTIME));
+    clientApps.Stop (Seconds (STOPTIME));
+
+    // Cálculo de rutas
+    Ipv4GlobalRoutingHelper::PopulateRoutingTables ();
+
+    csma.EnablePcap ("practica05", csmaDevices.Get (nCsma - 1), true);
+
     Observador observadores[nCsma]; 
     for (uint32_t i = 0; i < nCsma; i++) {
         csmaDevices->Get(i)->TraceConnectWithoutContext ("PhyTxEnd",     MakeCallback(&Observador::PaqueteEnviado,              &observadores[i]));
@@ -101,7 +149,6 @@ void simulacion (NetDeviceContainer * csmaDevices, uint32_t nCsma, uint32_t numR
         csmaDevices->Get(i)->TraceDisconnectWithoutContext ("MacTx",        MakeCallback(&Observador::PaqueteParaEnviar,           &observadores[i]));
         csmaDevices->Get(i)->TraceDisconnectWithoutContext ("MacRx",        MakeCallback(&Observador::PaqueteRecibidoParaEntregar, &observadores[i])); 
     }
-
 }
 
 int
@@ -127,55 +174,11 @@ main (int argc, char *argv[])
     cmd.AddValue ("tamPaquete", "tamaño de las SDU de aplicación", tamPaquete);
     cmd.AddValue ("intervalo", "tiempo entre dos paquetes consecutivos enviados por el mismo cliente", intervalo);
     cmd.Parse (argc,argv);
-
-    NodeContainer csmaNodes;
-    csmaNodes.Create (nCsma);
-
-    CsmaHelper csma;
-    csma.SetChannelAttribute ("DataRate", DataRateValue (capacidad));
-    csma.SetChannelAttribute ("Delay", TimeValue (retardoProp));
-
-    NetDeviceContainer csmaDevices;
-    csmaDevices = csma.Install (csmaNodes);
-    // Instalamos la pila TCP/IP en todos los nodos
-    InternetStackHelper stack;
-    stack.Install (csmaNodes);
-    // Y les asignamos direcciones
-    Ipv4AddressHelper address;
-    address.SetBase ("10.1.2.0", "255.255.255.0");
-    Ipv4InterfaceContainer csmaInterfaces = address.Assign (csmaDevices);
-
-    /////////// Instalación de las aplicaciones
-    // Servidor
-    UdpEchoServerHelper echoServer (9);
-    ApplicationContainer serverApp = echoServer.Install (csmaNodes.Get (nCsma - 1));
-    serverApp.Start (Seconds (STARTTIME));
-    serverApp.Stop (Seconds (STOPTIME));
-    // Clientes
-    UdpEchoClientHelper echoClient (csmaInterfaces.GetAddress (nCsma - 1), 9);
-    echoClient.SetAttribute ("MaxPackets", UintegerValue (10000));
-    echoClient.SetAttribute ("Interval", TimeValue (intervalo));
-    echoClient.SetAttribute ("PacketSize", UintegerValue (tamPaquete));
-    NodeContainer clientes;
-
-    for (uint32_t i = 0; i < nCsma - 1; i++)
-    {
-    	clientes.Add (csmaNodes.Get (i));
-    }
-    NS_LOG_FUNCTION ("Fin bucle de creacion de observadores");
-
-    ApplicationContainer clientApps = echoClient.Install (clientes);
-    NS_LOG_FUNCTION ("Instalacion de clientes de echo realizada");
-    clientApps.Start (Seconds (STARTTIME));
-    clientApps.Stop (Seconds (STOPTIME));
-
-    // Cálculo de rutas
-    Ipv4GlobalRoutingHelper::PopulateRoutingTables ();
-
-    csma.EnablePcap ("practica05", csmaDevices.Get (nCsma - 1), true);
     
+        
+
     for (int i = 0; i < 2; i++) {
-        simulacion(&csmaDevices, nCsma, 8);
+        simulacion(nCsma, retardoProp, capacidad, tamPaquete, intervalo, 8);
     }
 
     return 0;
