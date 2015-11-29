@@ -37,14 +37,11 @@ Observador::PaquetePerdido (Ptr<const Packet> paquete) {
   m_numeroIntentos = 0;
   m_numeroPaquetesPerdidos++;  
   NS_LOG_FUNCTION ("m_numeroPaquetesPerdidos" << m_numeroPaquetesPerdidos);
-  m_tinicial = 0;
-  m_tfinal = 0;
 }
 
 void
 Observador::PaqueteParaEnviar (Ptr<const Packet> paquete) {
   m_tinicial = Simulator::Now().GetMicroSeconds();
-  m_tfinal = 0;
   NS_LOG_FUNCTION_NOARGS ();
 }
 
@@ -53,6 +50,10 @@ Observador::PaqueteRecibidoParaEntregar (Ptr<const Packet> paquete) {
   m_tfinal = Simulator::Now().GetMicroSeconds ();
   if (m_tfinal > m_tinicial && m_tinicial != 0) {
     m_acum_tEco.Update(m_tfinal - m_tinicial);
+  } else {
+    if (m_tinicial !=0) {
+       NS_LOG_ERROR ("Tiempo final menor que inicial!!");
+    }
   }
   NS_LOG_FUNCTION ("tEco" << m_tfinal - m_tinicial);
   m_tinicial = 0;

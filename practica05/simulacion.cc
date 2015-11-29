@@ -174,7 +174,7 @@ main (int argc, char *argv[])
     Time     intervalo         = Time ("1s");
     uint32_t reintentosInicial = 1;
     uint32_t reintentosFinal   = 15;
-    double   tSimulacion       = 10000;
+    double   tSimulacion       = 1000;
    
     CommandLine cmd;
     cmd.AddValue ("nCsma", "Número de nodos de la red local", nCsma);
