@@ -172,8 +172,8 @@ main (int argc, char *argv[])
     DataRate capacidad         = DataRate ("100Mbps");
     uint32_t tamPaquete        = 500+100*dni[1];
     Time     intervalo         = Time ("1s");
-    uint32_t reintentosInicial = 2;
-    uint32_t reintentosFinal   = 12;
+    uint32_t reintentosInicial = 1;
+    uint32_t reintentosFinal   = 15;
     double   tSimulacion       = 1000;
    
     CommandLine cmd;
@@ -207,6 +207,7 @@ main (int argc, char *argv[])
     for (int i = 0; i < 3 ; i++) {
         dataset[i].SetStyle (Gnuplot2dDataset::LINES_POINTS);
         dataset[i].SetErrorBars(Gnuplot2dDataset::Y);
+        dataset[i].SetTitle("");
     }
     
     for (uint32_t maxReintentos = reintentosInicial; maxReintentos <= reintentosFinal; maxReintentos++) {
@@ -229,6 +230,7 @@ main (int argc, char *argv[])
         dataset[1].Add(maxReintentos, tiempoEcoTotal.Mean(), 2 * z[1]);
         z[2] = T_STUDENT_VALUE * std::sqrt (porcentajeErrorClientes.Var() / 10);
         dataset[2].Add(maxReintentos, porcentajeErrorClientes.Mean(), 2 * z[2]);
+        NS_LOG_DEBUG ("MAX REINTENTOS: " << maxReintentos); 
         NS_LOG_DEBUG (numIntentosTotales.Mean() - z[0] << " < numIntentosTotales < " << numIntentosTotales.Mean() + z[0]);
         NS_LOG_DEBUG (tiempoEcoTotal.Mean() - z[1] << " < tiempoEcoTotal < " << tiempoEcoTotal.Mean() + z[1]);
         NS_LOG_DEBUG (porcentajeErrorClientes.Mean() - z[2] << " < porcentajeErrorClientes < " << porcentajeErrorClientes.Mean() + z[2]);
