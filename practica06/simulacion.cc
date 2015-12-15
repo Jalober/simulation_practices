@@ -122,12 +122,14 @@ main (int argc, char *argv[])
   OnOffHelper clientes ("ns3::UdpSocketFactory",
                         Address (InetSocketAddress (p2pInterfaces.GetAddress (0), port)));
   clientes.SetAttribute("PacketSize", UintegerValue(sizePkt));
-  std::ostringstream expVariable;
+  /*std::ostringstream expVariable;
   expVariable << "ns3::ExponentialRandomVariable[Mean=" << ton.GetDouble() << "]";
   clientes.SetAttribute("OnTime",  StringValue (expVariable.str()));
   expVariable << "ns3::ExponentialRandomVariable[Mean=" << toff.GetDouble() << "]";
   clientes.SetAttribute("OffTime", StringValue (expVariable.str()));
-
+  */
+  clientes.SetAttribute("OnTime", RandomVariableValue (ExponentialVariable (ton)));
+  clientes.SetAttribute("OffTime", RandomVariableValue (ExponentialVariable (toff)));telegr
   
   ApplicationContainer clientApps = clientes.Install (csmaNodes.Get (nCsma));
   clientApps.Start (Seconds (2.0));
