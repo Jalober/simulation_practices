@@ -21,6 +21,8 @@
 #include "ns3/point-to-point-module.h"
 #include "ns3/applications-module.h"
 #include "ns3/ipv4-global-routing-helper.h"
+#include <sstream>
+
 
 // Default Network Topology
 //
@@ -41,10 +43,20 @@ main (int argc, char *argv[])
   GlobalValue::Bind("ChecksumEnabled", BooleanValue(true));
   Time::SetResolution (Time::US);
 
+  //Valores por defecto de los parámetros
   uint32_t nCsma = 3;
+  Time     ton  ("1s");
+  Time     toff ("1s");
+  uint32_t sizePkt = 512;
+  DataRate dataRate ("500Kbps");
 
+  //Obtención de parámetros por línea de comandos
   CommandLine cmd;
   cmd.AddValue ("nCsma", "Number of \"extra\" CSMA nodes/devices", nCsma);
+  cmd.AddValue ("ton", "valor medio de tiempo de on", ton);
+  cmd.AddValue ("toff", "valor medio de tiempo de off", toff);
+  cmd.AddValue ("sizePkt", "tamaño de paquete", sizePkt);
+  cmd.AddValue ("dataRate", "tasa de bit en el estado activo", dataRate);
   cmd.Parse (argc,argv);
 
   nCsma = nCsma == 0 ? 1 : nCsma;
@@ -70,7 +82,7 @@ main (int argc, char *argv[])
   // Instalamos el dispositivo de red en los nodos de la LAN
   CsmaHelper csma;
   NetDeviceContainer csmaDevices;
-  csma.SetChannelAttribute ("DataRate", StringValue ("100Mbps"));
+  csma.SetChannelAttribute ("DataRate", DataRateValue(dataRate));
   csma.SetChannelAttribute ("Delay", TimeValue (NanoSeconds (6560)));
   csmaDevices = csma.Install (csmaNodes);
 
@@ -109,6 +121,13 @@ main (int argc, char *argv[])
   // Instalamos un cliente OnOff en uno de los equipos de la red de área local
   OnOffHelper clientes ("ns3::UdpSocketFactory",
                         Address (InetSocketAddress (p2pInterfaces.GetAddress (0), port)));
+  clientes.SetAttribute("PacketSize", UintegerValue(sizePkt));
+  std::ostringstream expVariable;
+  expVariable << "ns3::ExponentialRandomVariable[Mean=" << ton.GetDouble() << "]";
+  clientes.SetAttribute("OnTime",  StringValue (expVariable.str()));
+  expVariable << "ns3::ExponentialRandomVariable[Mean=" << toff.GetDouble() << "]";
+  clientes.SetAttribute("OffTime", StringValue (expVariable.str()));
+
   
   ApplicationContainer clientApps = clientes.Install (csmaNodes.Get (nCsma));
   clientApps.Start (Seconds (2.0));
