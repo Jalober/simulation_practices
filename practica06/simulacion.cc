@@ -82,7 +82,7 @@ main (int argc, char *argv[])
   // Instalamos el dispositivo de red en los nodos de la LAN
   CsmaHelper csma;
   NetDeviceContainer csmaDevices;
-  csma.SetChannelAttribute ("DataRate", DataRateValue(dataRate));
+  csma.SetChannelAttribute ("DataRate", StringValue ("100Mbps"));
   csma.SetChannelAttribute ("Delay", TimeValue (NanoSeconds (6560)));
   csmaDevices = csma.Install (csmaNodes);
 
@@ -122,15 +122,24 @@ main (int argc, char *argv[])
   OnOffHelper clientes ("ns3::UdpSocketFactory",
                         Address (InetSocketAddress (p2pInterfaces.GetAddress (0), port)));
   clientes.SetAttribute("PacketSize", UintegerValue(sizePkt));
-  /*std::ostringstream expVariable;
-  expVariable << "ns3::ExponentialRandomVariable[Mean=" << ton.GetDouble() << "]";
+  std::ostringstream expVariable;
+  expVariable << "ns3::ExponentialRandomVariable[Mean=" << ton.GetSeconds() << "]";
   clientes.SetAttribute("OnTime",  StringValue (expVariable.str()));
-  expVariable << "ns3::ExponentialRandomVariable[Mean=" << toff.GetDouble() << "]";
+  expVariable << "ns3::ExponentialRandomVariable[Mean=" << toff.GetSeconds() << "]";
   clientes.SetAttribute("OffTime", StringValue (expVariable.str()));
-  */
-  clientes.SetAttribute("OnTime", RandomVariableValue (ExponentialVariable (ton)));
-  clientes.SetAttribute("OffTime", RandomVariableValue (ExponentialVariable (toff)));telegr
   
+  /*  
+  Ptr<ExponentialRandomVariable> onTimeExp = CreateObject<ExponentialRandomVariable> ();
+  onTimeExp->SetAttribute ("Mean", DoubleValue (ton.GetSeconds()));
+  clientes.SetAttribute("OnTime", PointerValue (onTimeExp));
+  Ptr<ExponentialRandomVariable> offTimeExp = CreateObject<ExponentialRandomVariable> ();
+  offTimeExp->SetAttribute ("Mean", DoubleValue (toff.GetSeconds()));
+  clientes.SetAttribute("OffTime", PointerValue (offTimeExp));
+  */
+
+  clientes.SetAttribute ("DataRate", DataRateValue(dataRate));
+  clientes.SetAttribute ("PacketSize", UintegerValue (sizePkt));  
+
   ApplicationContainer clientApps = clientes.Install (csmaNodes.Get (nCsma));
   clientApps.Start (Seconds (2.0));
   clientApps.Stop (Seconds (10.0));
