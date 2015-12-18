@@ -8,25 +8,37 @@ NS_LOG_COMPONENT_DEFINE ("Observador");
 //Constructor de observador
 Observador::Observador ()
 {
-  m_tinicial = 0;
-  m_tfinal   = 0;
+  
 }
 
 void
-Observador::PaqueteEnviado (Ptr<const Packet> paquete) {
-  NS_LOG_FUNCTION_NOARGS(); 
-  m_tinicio = Simulator::Now().GetDouble();
+Observador::EnvioPaquete (Ptr<const Packet> paquete) {
+  NS_LOG_FUNCTION_NOARGS();
+  //Obtenemos el uid de paquete
+  m_tEnvio[paquete->GetUid ()] = Simulator::Now ();
 }
 
 void
-Observador::PaqueteRecibido (Ptr<const Packet> paquete) {
-  m_tfinal = Simulator::Now().GetDouble ();
-  if (m_tfinal > m_tinicial) {
-    m_acum_retardo.Update(m_tfinal - m_tinicial);
+Observador::PaqueteRecibido (Ptr<const Packet> paquete, const Address &dir) {
+  NS_LOG_FUNCTION_NOARGS();
+  std::map<uint64_t, Time>::iterator it;
+  it = m_tEnvio.find (paquete->GetUid ());
+  if (it != m_tEnvio.end()) {
+    double retardo = Simulator::Now().GetDouble() - it->second.GetDouble();
+    m_acum_retardo.Update(retardo);
+    m_tEnvio.erase (it);
+    NS_LOG_INFO ("Retardo de paquete con uid " << paquete->GetUid() << ": " << retardo);
   } else {
-    if (m_tinicial !=0) {
-       NS_LOG_ERROR ("Tiempo final menor que inicial!!");
-    }
-  }
-  NS_LOG_FUNCTION ("Retardo" << m_tfinal - m_tinicial);
+    NS_LOG_ERROR ("Paquete con uid " << paquete->GetUid() << " no encontrado en map!");
+  } 
+}
+
+Time
+Observador::GetRetardoMedio () {
+  return Time(m_acum_retardo.Mean());
+}
+
+unsigned int
+Observador::MapSize () {
+  return m_tEnvio.size ();
 }

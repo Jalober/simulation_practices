@@ -22,9 +22,9 @@
 #include "ns3/applications-module.h"
 #include "ns3/ipv4-global-routing-helper.h"
 #include <sstream>
+#include "Observador.h"
 
-
-// Default Network Topology
+// Default Network Topolo
 //
 //       10.1.1.0
 // n0 -------------- n1   n2   n3   n4
@@ -109,7 +109,6 @@ main (int argc, char *argv[])
   //     al nodo del otro extremo del enlace punto a punto deben
   //     utilizar el primer nodo como ruta por defecto.
   Ipv4GlobalRoutingHelper::PopulateRoutingTables ();
-
   
   // Establecemos un sumidero para los paquetes en el puerto 9 del nodo
   //     aislado del enlace punto a punto
@@ -138,19 +137,30 @@ main (int argc, char *argv[])
   */
 
   clientes.SetAttribute ("DataRate", DataRateValue(dataRate));
-  clientes.SetAttribute ("PacketSize", UintegerValue (sizePkt));  
-
-  ApplicationContainer clientApps = clientes.Install (csmaNodes.Get (nCsma));
+  clientes.SetAttribute ("PacketSize", UintegerValue (sizePkt));    
+  ApplicationContainer clientApps = clientes.Install (csmaNodes);
   clientApps.Start (Seconds (2.0));
   clientApps.Stop (Seconds (10.0));
-
+ 
   // Activamos las trazas pcap en las dos interfaces del nodo de enlace
   pointToPoint.EnablePcap ("practica06", p2pDevices.Get (1));
   csma.EnablePcap ("practica06", csmaDevices.Get (0), true);
-
+  
+  Observador observador;
+  for (unsigned int i = 0; i <= nCsma; i++) {
+    csmaNodes.Get(i)->GetApplication(0)->TraceConnectWithoutContext ("Tx", MakeCallback(&Observador::EnvioPaquete, &observador));
+  }  
+  //p2pDevices.Get(0)->TraceConnectWithoutContext ("MacRx", MakeCallback(&Observador::PaqueteRecibido, &observador));  
+  p2pNodes.Get(0)->GetApplication(0)->TraceConnectWithoutContext ("Rx", MakeCallback(&Observador::PaqueteRecibido, &observador));
   // Lanzamos la simulación
   Simulator::Run ();
   Simulator::Destroy ();
+ 
+  unsigned int tamMapa = observador.MapSize();
+  if (tamMapa != 0) {
+    NS_LOG_ERROR ("Mapa de paquetes enviado no vacío (" << tamMapa << ")!");
+  }
 
+  NS_LOG_INFO ("retardo medio: " << observador.GetRetardoMedio().GetMilliSeconds() << "ms"); 
   return 0;
 }
