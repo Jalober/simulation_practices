@@ -15,9 +15,12 @@ public:
   void PaqueteRecibido (Ptr<const Packet> paquete, const Address &dir);
   Time GetRetardoMedio ();
   unsigned int MapSize ();
+  double GetPorcentajePaquetesCorrectos ();
 private:  
   //Map con el momento de envio de los paquetes
   std::map<uint64_t, Time> m_tEnvio;
   //Acumulador con los retardos
   Average<double> m_acum_retardo;
+  uint64_t m_intentos_totales;
+  uint64_t m_paquetes_correctos;
 };

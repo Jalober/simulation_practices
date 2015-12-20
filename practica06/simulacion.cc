@@ -121,21 +121,14 @@ main (int argc, char *argv[])
   OnOffHelper clientes ("ns3::UdpSocketFactory",
                         Address (InetSocketAddress (p2pInterfaces.GetAddress (0), port)));
   clientes.SetAttribute("PacketSize", UintegerValue(sizePkt));
-  std::ostringstream expVariable;
-  expVariable << "ns3::ExponentialRandomVariable[Mean=" << ton.GetSeconds() << "]";
-  clientes.SetAttribute("OnTime",  StringValue (expVariable.str()));
-  expVariable << "ns3::ExponentialRandomVariable[Mean=" << toff.GetSeconds() << "]";
-  clientes.SetAttribute("OffTime", StringValue (expVariable.str()));
-  
-  /*  
+      
   Ptr<ExponentialRandomVariable> onTimeExp = CreateObject<ExponentialRandomVariable> ();
   onTimeExp->SetAttribute ("Mean", DoubleValue (ton.GetSeconds()));
   clientes.SetAttribute("OnTime", PointerValue (onTimeExp));
   Ptr<ExponentialRandomVariable> offTimeExp = CreateObject<ExponentialRandomVariable> ();
   offTimeExp->SetAttribute ("Mean", DoubleValue (toff.GetSeconds()));
   clientes.SetAttribute("OffTime", PointerValue (offTimeExp));
-  */
-
+  
   clientes.SetAttribute ("DataRate", DataRateValue(dataRate));
   clientes.SetAttribute ("PacketSize", UintegerValue (sizePkt));    
   ApplicationContainer clientApps = clientes.Install (csmaNodes);
@@ -161,6 +154,7 @@ main (int argc, char *argv[])
     NS_LOG_ERROR ("Mapa de paquetes enviado no vacío (" << tamMapa << ")!");
   }
 
-  NS_LOG_INFO ("retardo medio: " << observador.GetRetardoMedio().GetMilliSeconds() << "ms"); 
+  NS_LOG_INFO ("retardo medio: " << observador.GetRetardoMedio().GetMilliSeconds() << " ms"); 
+  NS_LOG_INFO ("porcentaje paquetes correctos: " << observador.GetPorcentajePaquetesCorrectos() << " %");
   return 0;
 }
