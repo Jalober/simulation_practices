@@ -21,8 +21,18 @@
 #include "ns3/point-to-point-module.h"
 #include "ns3/applications-module.h"
 #include "ns3/ipv4-global-routing-helper.h"
+#include <ns3/gnuplot.h>
 #include <sstream>
 #include "Observador.h"
+
+#define NUM_SIMULACIONES 10
+#define T_STUDENT_VALUE 2.2622
+
+
+typedef struct datos {
+  Time retardoMedio;
+  double porcentajePaquetesCorrectos;
+} DATOS; 
 
 // Default Network Topolo
 //
@@ -37,29 +47,7 @@ using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("Practica06");
 
-int 
-main (int argc, char *argv[])
-{
-  GlobalValue::Bind("ChecksumEnabled", BooleanValue(true));
-  Time::SetResolution (Time::US);
-
-  //Valores por defecto de los parámetros
-  uint32_t nCsma = 3;
-  Time     ton  ("1s");
-  Time     toff ("1s");
-  uint32_t sizePkt = 512;
-  DataRate dataRate ("500Kbps");
-
-  //Obtención de parámetros por línea de comandos
-  CommandLine cmd;
-  cmd.AddValue ("nCsma", "Number of \"extra\" CSMA nodes/devices", nCsma);
-  cmd.AddValue ("ton", "valor medio de tiempo de on", ton);
-  cmd.AddValue ("toff", "valor medio de tiempo de off", toff);
-  cmd.AddValue ("sizePkt", "tamaño de paquete", sizePkt);
-  cmd.AddValue ("dataRate", "tasa de bit en el estado activo", dataRate);
-  cmd.Parse (argc,argv);
-
-  nCsma = nCsma == 0 ? 1 : nCsma;
+DATOS simulacion (uint32_t nCsma, Time ton, Time toff, uint32_t sizePkt, DataRate dataRate, uint32_t tamCola) {
 
   // Nodos que pertenecen al enlace punto a punto
   NodeContainer p2pNodes;
@@ -77,6 +65,7 @@ main (int argc, char *argv[])
   NetDeviceContainer p2pDevices;
   pointToPoint.SetDeviceAttribute ("DataRate", StringValue ("2Mbps"));
   pointToPoint.SetChannelAttribute ("Delay", StringValue ("2ms"));
+  pointToPoint.SetQueue("ns3::DropTailQueue", "MaxPackets", UintegerValue(tamCola));
   p2pDevices = pointToPoint.Install (p2pNodes);
 
   // Instalamos el dispositivo de red en los nodos de la LAN
@@ -151,10 +140,107 @@ main (int argc, char *argv[])
  
   unsigned int tamMapa = observador.MapSize();
   if (tamMapa != 0) {
-    NS_LOG_ERROR ("Mapa de paquetes enviado no vacío (" << tamMapa << ")!");
+    NS_LOG_INFO ("Mapa de paquetes enviado no vacío (" << tamMapa << ")!");
+  }
+  
+  Time retardoMedio = observador.GetRetardoMedio();
+  double porcentajePaquetesCorrectos = observador.GetPorcentajePaquetesCorrectos();
+  
+  NS_LOG_INFO ("retardo medio: " << retardoMedio.GetMilliSeconds() << " ms"); 
+  NS_LOG_INFO ("porcentaje paquetes correctos: " << porcentajePaquetesCorrectos << " %");
+  
+  DATOS datos = { retardoMedio, porcentajePaquetesCorrectos };
+  return datos;
+}
+
+int 
+main (int argc, char *argv[])
+{
+  GlobalValue::Bind("ChecksumEnabled", BooleanValue(true));
+  Time::SetResolution (Time::US);
+
+  uint32_t dni[8] = {3,1,4,8,2,2,0,3};
+  NS_LOG_INFO ("DNI: " << dni[8]<<dni[7]<<dni[6]<<dni[5]<<dni[4]<<dni[3]<<dni[2]<<dni[1]);
+
+  //Valores por defecto de los parámetros
+  uint32_t nCsma = 150 + 5*dni[0];
+  Time     ton  ("150ms");
+  Time     toff ("650ms");
+  uint32_t sizePkt = 40 - dni[1]/2;
+  DataRate dataRate ("64Kbps");
+
+  //Obtención de parámetros por línea de comandos
+  CommandLine cmd;
+  cmd.AddValue ("nCsma", "Number of \"extra\" CSMA nodes/devices", nCsma);
+  cmd.AddValue ("ton", "valor inicial del tiempo medio de permanencia en el estado On", ton);
+  cmd.AddValue ("toff", "tiempo medio de permanencia en el estado Off", toff);
+  cmd.AddValue ("sizePkt", "tamaño de paquete", sizePkt);
+  cmd.AddValue ("dataRate", "tasa de bit en el estado activo", dataRate);
+  cmd.Parse (argc,argv);
+
+  nCsma = nCsma == 0 ? 1 : nCsma;
+
+  Time intervalo = Time("50ms");
+
+  /* Preparacion de las graficas */
+  Gnuplot plot[2];
+  plot[0].SetTitle ("Porcentaje de paquetes correctamente transmitidos");
+  plot[0].SetLegend ("tMedioEstadoOn (ms)", "PqtsCorrectos (%)");
+  plot[1].SetTitle ("Retardo medio");
+  plot[1].SetLegend ("tMedioEstadoOn (ms)", "retardo medio (ms)");
+
+  Gnuplot2dDataset datasetPlot1[5];
+  Gnuplot2dDataset datasetPlot2[5];
+  for (uint32_t i = 0; i < 5; i++) {
+    datasetPlot1[i].SetStyle (Gnuplot2dDataset::LINES_POINTS);
+    datasetPlot1[i].SetErrorBars(Gnuplot2dDataset::Y);
+    datasetPlot2[i].SetStyle (Gnuplot2dDataset::LINES_POINTS);
+    datasetPlot2[i].SetErrorBars(Gnuplot2dDataset::Y);
+  }  
+
+  for (uint32_t tamCola = 1; tamCola <= 5; tamCola++) { //bucle para cada curva
+    NS_LOG_DEBUG("##################################");
+    NS_LOG_DEBUG("TAM_COLA = " << tamCola);
+    NS_LOG_DEBUG("##################################");
+    std::ostringstream rotulo;
+    rotulo << "tamCola: " << tamCola;
+    datasetPlot1[tamCola-1].SetTitle(rotulo.str());
+    datasetPlot2[tamCola-1].SetTitle(rotulo.str());
+    double tonActual = ton.GetDouble();
+    for (int i = 0; i < 5; i++) { //Bucle para cada punto de la curva     
+      Average<double> mediaRetardo;
+      Average<double> mediaPorcentajePaquetesCorrectos; 
+      for (int j = 0; j < NUM_SIMULACIONES; j++) { //Bucle para cada pack de simulaciones
+        DATOS datos = simulacion(nCsma, Time(tonActual), toff, sizePkt, dataRate, tamCola);        
+        mediaPorcentajePaquetesCorrectos.Update(datos.porcentajePaquetesCorrectos);
+        mediaRetardo.Update(datos.retardoMedio.GetDouble());      
+      }      
+      double z1 = T_STUDENT_VALUE * std::sqrt (mediaPorcentajePaquetesCorrectos.Var() / NUM_SIMULACIONES);
+      double z2 = T_STUDENT_VALUE * std::sqrt (mediaRetardo.Var () / NUM_SIMULACIONES);
+      datasetPlot1[tamCola-1].Add(Time(tonActual).GetMilliSeconds(), mediaPorcentajePaquetesCorrectos.Mean(), z1);
+      datasetPlot2[tamCola-1].Add(Time(tonActual).GetMilliSeconds(), Time(mediaRetardo.Mean()).GetMilliSeconds(), z2);      
+      NS_LOG_DEBUG( "Ton = " << Time(tonActual).GetMilliSeconds() << 
+                    " ms\tPktCorrectos = " << mediaPorcentajePaquetesCorrectos.Mean() <<
+                    " %\tretardo = " << Time(mediaRetardo.Mean()).GetMilliSeconds() << " ms");
+      tonActual = tonActual + intervalo.GetDouble();
+    }
   }
 
-  NS_LOG_INFO ("retardo medio: " << observador.GetRetardoMedio().GetMilliSeconds() << " ms"); 
-  NS_LOG_INFO ("porcentaje paquetes correctos: " << observador.GetPorcentajePaquetesCorrectos() << " %");
+  for(int i = 0; i < 5; i++) {
+    plot[0].AddDataset (datasetPlot1[i]);
+  }
+  std::ofstream plotFile1 ("practica06-1.plt");
+  plot[0].GenerateOutput (plotFile1);
+  plotFile1 << "pause -1" << std::endl;
+  plotFile1.close ();
+
+  for(int i = 0; i < 5; i++) {
+    plot[1].AddDataset (datasetPlot2[i]);
+  }  
+  std::ofstream plotFile2 ("practica06-2.plt");
+  plot[1].GenerateOutput (plotFile2);
+  plotFile2 << "pause -1" << std::endl;
+  plotFile2.close ();
+  
   return 0;
 }
