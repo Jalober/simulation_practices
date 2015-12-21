@@ -10,6 +10,7 @@ Observador::Observador ()
 {
   m_intentos_totales = 0;
   m_paquetes_correctos = 0;
+  m_acum_retardo.Reset();
 }
 
 void
