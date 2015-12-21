@@ -26,7 +26,7 @@ Observador::PaqueteRecibido (Ptr<const Packet> paquete, const Address &dir) {
   std::map<uint64_t, Time>::iterator it;
   it = m_tEnvio.find (paquete->GetUid ());
   if (it != m_tEnvio.end()) {
-    double retardo = Simulator::Now().GetDouble() - it->second.GetDouble();
+    double retardo = Simulator::Now().GetMicroSeconds() - it->second.GetMicroSeconds();
     m_acum_retardo.Update(retardo);
     m_tEnvio.erase (it);
     m_paquetes_correctos++;

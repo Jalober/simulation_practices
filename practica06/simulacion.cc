@@ -25,8 +25,8 @@
 #include <sstream>
 #include "Observador.h"
 
-#define NUM_SIMULACIONES 10
-#define T_STUDENT_VALUE 2.2622
+#define NUM_SIMULACIONES 2
+#define T_STUDENT_VALUE 4.303
 
 
 typedef struct datos {
@@ -146,7 +146,7 @@ DATOS simulacion (uint32_t nCsma, Time ton, Time toff, uint32_t sizePkt, DataRat
   Time retardoMedio = observador.GetRetardoMedio();
   double porcentajePaquetesCorrectos = observador.GetPorcentajePaquetesCorrectos();
   
-  NS_LOG_INFO ("retardo medio: " << retardoMedio.GetMilliSeconds() << " ms"); 
+  NS_LOG_INFO ("retardo medio: " << retardoMedio.GetMicroSeconds() << " us"); 
   NS_LOG_INFO ("porcentaje paquetes correctos: " << porcentajePaquetesCorrectos << " %");
   
   DATOS datos = { retardoMedio, porcentajePaquetesCorrectos };
@@ -159,8 +159,8 @@ main (int argc, char *argv[])
   GlobalValue::Bind("ChecksumEnabled", BooleanValue(true));
   Time::SetResolution (Time::US);
 
-  uint32_t dni[8] = {3,1,4,8,2,2,0,3};
-  NS_LOG_INFO ("DNI: " << dni[8]<<dni[7]<<dni[6]<<dni[5]<<dni[4]<<dni[3]<<dni[2]<<dni[1]);
+  uint32_t dni[] = {3,1,4,8,2,2,0,3};
+  NS_LOG_INFO ("DNI: " << dni[7]<<dni[6]<<dni[5]<<dni[4]<<dni[3]<<dni[2]<<dni[1]<<dni[0]);
 
   //Valores por defecto de los parámetros
   uint32_t nCsma = 150 + 5*dni[0];
@@ -187,7 +187,7 @@ main (int argc, char *argv[])
   plot[0].SetTitle ("Porcentaje de paquetes correctamente transmitidos");
   plot[0].SetLegend ("tMedioEstadoOn (ms)", "PqtsCorrectos (%)");
   plot[1].SetTitle ("Retardo medio");
-  plot[1].SetLegend ("tMedioEstadoOn (ms)", "retardo medio (ms)");
+  plot[1].SetLegend ("tMedioEstadoOn (ms)", "retardo medio (us)");
 
   Gnuplot2dDataset datasetPlot1[5];
   Gnuplot2dDataset datasetPlot2[5];
@@ -218,10 +218,10 @@ main (int argc, char *argv[])
       double z1 = T_STUDENT_VALUE * std::sqrt (mediaPorcentajePaquetesCorrectos.Var() / NUM_SIMULACIONES);
       double z2 = T_STUDENT_VALUE * std::sqrt (mediaRetardo.Var () / NUM_SIMULACIONES);
       datasetPlot1[tamCola-1].Add(Time(tonActual).GetMilliSeconds(), mediaPorcentajePaquetesCorrectos.Mean(), z1);
-      datasetPlot2[tamCola-1].Add(Time(tonActual).GetMilliSeconds(), Time(mediaRetardo.Mean()).GetMilliSeconds(), z2);      
+      datasetPlot2[tamCola-1].Add(Time(tonActual).GetMilliSeconds(), Time(mediaRetardo.Mean()).GetMicroSeconds(), z2);      
       NS_LOG_DEBUG( "Ton = " << Time(tonActual).GetMilliSeconds() << 
                     " ms\tPktCorrectos = " << mediaPorcentajePaquetesCorrectos.Mean() <<
-                    " %\tretardo = " << Time(mediaRetardo.Mean()).GetMilliSeconds() << " ms");
+                    " %\tretardo = " << Time(mediaRetardo.Mean()).GetMicroSeconds() << " us");
       tonActual = tonActual + intervalo.GetDouble();
     }
   }
